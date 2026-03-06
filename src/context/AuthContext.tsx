@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/utils/supabaseClient';
 import axios from 'axios';
+import analytics from '@/utils/analyticsService';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -65,8 +66,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     fullName: u.user_metadata?.full_name || u.user_metadata?.username || '',
                     mobile: u.user_metadata?.mobile || ''
                 });
+                analytics.setUserId(u.id);
             } else {
                 setUser(null);
+                analytics.setUserId(null);
             }
             setIsLoading(false);
         });
@@ -83,7 +86,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 password
             });
 
-            if (error) throw error;
+            if (error) {
+                analytics.trackEvent('login_failed', { email, error: error.message });
+                throw error;
+            }
+            analytics.trackEvent('login_success', { email });
             closeLoginModal();
             return { error: null };
         } catch (error: any) {
@@ -106,6 +113,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             const { error: loginError } = await login(email, password);
             if (loginError) throw loginError;
 
+            analytics.trackEvent('account_created', { username, email });
             return { error: null };
         } catch (error: any) {
             console.error('Signup error:', error);
@@ -151,8 +159,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const logout = async () => {
+        analytics.trackEvent('logout');
         await supabase.auth.signOut();
         setUser(null);
+        analytics.setUserId(null);
     };
 
     return (

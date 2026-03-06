@@ -230,6 +230,13 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleDeleteProduct = (productId: string, productName: string) => {
+        if (window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+            deleteProduct(productId);
+            toast.success('Product deleted successfully');
+        }
+    };
+
     const handleEdit = (product: any) => {
         setEditingId(product.id);
 
@@ -1150,7 +1157,12 @@ const AdminDashboard = () => {
                                                             <Pencil size={18} />
                                                         </button>
                                                         <button
-                                                            onClick={() => deleteVideo(video.id)}
+                                                            onClick={() => {
+                                                                if (window.confirm(`Delete video "${video.title}"?`)) {
+                                                                    deleteVideo(video.id);
+                                                                    toast.success("Video deleted");
+                                                                }
+                                                            }}
                                                             className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors"
                                                             title="Delete Video"
                                                         >
@@ -1284,7 +1296,12 @@ const AdminDashboard = () => {
                                                         <Pencil size={18} />
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteNewsItem(item.id)}
+                                                        onClick={() => {
+                                                            if (window.confirm(`Delete news item "${item.title}"?`)) {
+                                                                deleteNewsItem(item.id);
+                                                                toast.success("News item deleted");
+                                                            }
+                                                        }}
                                                         className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors"
                                                         title="Delete News"
                                                     >
@@ -1416,7 +1433,12 @@ const AdminDashboard = () => {
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <button onClick={() => handleEditReview(review)} className="text-blue-500 hover:text-blue-700 p-1"><Pencil size={16} /></button>
-                                                        <button onClick={() => deleteReview(review.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 size={16} /></button>
+                                                        <button onClick={() => {
+                                                            if (window.confirm(`Delete review from "${review.name}"?`)) {
+                                                                deleteReview(review.id);
+                                                                toast.success("Review deleted");
+                                                            }
+                                                        }} className="text-red-500 hover:text-red-700 p-1"><Trash2 size={16} /></button>
                                                     </div>
                                                 </div>
                                                 <p className="text-gray-600 text-sm mt-2">{review.content}</p>
@@ -1511,7 +1533,12 @@ const AdminDashboard = () => {
 
                                             <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button onClick={() => handleEditPartner(partner)} className="bg-white text-blue-500 p-1.5 rounded-full shadow-sm hover:text-blue-700"><Pencil size={14} /></button>
-                                                <button onClick={() => deletePartner(partner.id)} className="bg-white text-red-500 p-1.5 rounded-full shadow-sm hover:text-red-700"><Trash2 size={14} /></button>
+                                                <button onClick={() => {
+                                                    if (window.confirm(`Delete partner "${partner.name}"?`)) {
+                                                        deletePartner(partner.id);
+                                                        toast.success("Partner deleted");
+                                                    }
+                                                }} className="bg-white text-red-500 p-1.5 rounded-full shadow-sm hover:text-red-700"><Trash2 size={14} /></button>
                                             </div>
                                         </div>
                                     ))}
@@ -2194,7 +2221,12 @@ const AdminDashboard = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <button
-                                                        onClick={() => deleteOrder(order.id)}
+                                                        onClick={() => {
+                                                            if (window.confirm(`Delete order #${order.id.slice(0, 8)}?`)) {
+                                                                deleteOrder(order.id);
+                                                                toast.success("Order deleted");
+                                                            }
+                                                        }}
                                                         className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors"
                                                         title="Delete Order"
                                                     >
@@ -2341,7 +2373,7 @@ const AdminDashboard = () => {
                                                     <button onClick={() => handleEdit(product)} className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-full transition-colors" title="Edit">
                                                         <Pencil size={18} />
                                                     </button>
-                                                    <button onClick={() => deleteProduct(product.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors" title="Delete">
+                                                    <button onClick={() => handleDeleteProduct(product.id, product.name)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors" title="Delete">
                                                         <Trash2 size={18} />
                                                     </button>
                                                 </div>

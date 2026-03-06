@@ -50,6 +50,9 @@ export interface Product {
         required?: boolean;
     }>;
     variants?: ProductVariant[];
+    createdAt?: string;
+    salesCount?: number;
+    rating?: number;
 }
 
 // Sample product to visualize changes immediately

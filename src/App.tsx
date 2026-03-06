@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Home from '@/pages/Home';
 import PageViewer from '@/pages/PageViewer';
 import BlogList from '@/pages/BlogList';
@@ -24,8 +25,43 @@ import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import ScrollToTop from '@/components/ScrollToTop';
 
 import { Toaster } from 'react-hot-toast';
+import analytics from '@/utils/analyticsService';
 
 function App() {
+    const location = useLocation();
+    const [scrolledMilestones, setScrolledMilestones] = useState<number[]>([]);
+
+    // Track Page Views
+    useEffect(() => {
+        analytics.trackEvent('page_view', {
+            path: location.pathname,
+            search: location.search,
+            title: document.title
+        });
+        setScrolledMilestones([]); // Reset milestones on navigation
+    }, [location]);
+
+    // Track Scroll Depth
+    useEffect(() => {
+        const handleScroll = () => {
+            const h = document.documentElement,
+                b = document.body,
+                st = 'scrollTop',
+                sh = 'scrollHeight';
+            const percent = (h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight) * 100;
+
+            [25, 50, 75, 100].forEach(milestone => {
+                if (percent >= milestone && !scrolledMilestones.includes(milestone)) {
+                    setScrolledMilestones(prev => [...prev, milestone]);
+                    analytics.trackEvent('scroll_depth', { depth: `${milestone}%` });
+                }
+            });
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [scrolledMilestones]);
+
     return (
         <>
             <ScrollToTop />

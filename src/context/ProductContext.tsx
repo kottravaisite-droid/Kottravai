@@ -63,6 +63,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         isCustomRequest: p.is_custom_request || p.isCustomRequest || false,
         custom_form_config: p.custom_form_config || p.customFormConfig || [],
         default_form_fields: p.default_form_fields || p.defaultFormFields || [],
+        createdAt: p.created_at || p.createdAt || new Date().toISOString(),
+        salesCount: p.sales_count || p.salesCount || 0,
+        rating: p.rating || 0,
         variants: p.variants || []
     });
 

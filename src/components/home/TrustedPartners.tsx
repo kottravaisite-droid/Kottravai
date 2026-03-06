@@ -4,7 +4,7 @@ const TrustedPartners = () => {
     const { partners } = usePartners();
 
     return (
-        <section className="py-8 bg-blue-50/50">
+        <section className="py-8 md:py-12 bg-[#FAF9F6]">
             <div className="container px-4">
                 <h2 className="text-3xl md:text-4xl font-black text-center text-gray-900 mb-6">
                     Trusted By

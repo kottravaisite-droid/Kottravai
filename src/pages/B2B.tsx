@@ -384,39 +384,57 @@ const B2B = () => {
                 </div>
             </section>
 
-            {/* Audience Section */}
-            <section className="py-20 bg-white border-b">
-                <div className="container mx-auto px-4 max-w-4xl text-center">
-                    <h2 className="text-3xl md:text-4xl font-black text-[#2D1B4E] mb-12">For Companies That Value People</h2>
-                    <div className="grid md:grid-cols-2 gap-8 text-left">
-                        <div className="flex gap-4">
-                            <div className="mt-1"><Building2 className="text-[#8E2A8B]" size={24} /></div>
-                            <div>
-                                <h4 className="font-bold text-lg text-[#2D1B4E]">DEI & Social Responsibility</h4>
-                                <p className="text-gray-600 text-sm">Gifts that reflect purpose, equity & meaningful impact.</p>
+            {/* Audience Section - Redesigned */}
+            <section className="py-[60px] lg:py-[100px] bg-white border-b overflow-hidden">
+                <div className="container mx-auto px-4 max-w-6xl">
+                    <div className="text-center mb-16">
+                        <h2 className="text-[28px] lg:text-[48px] font-bold text-[#2D1B4E] leading-tight mb-4">
+                            For Companies That Value People
+                        </h2>
+                        <div className="w-[80px] h-[1px] bg-[#8E2A8B]/30 mx-auto mb-6"></div>
+                        <p className="text-[#6B7280] text-lg lg:text-xl max-w-2xl mx-auto">
+                            Purpose-driven gifting designed to strengthen culture, leadership, and belonging.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-[24px] lg:gap-[40px]">
+                        {[
+                            {
+                                icon: Building2,
+                                title: "DEI & Social Responsibility",
+                                desc: "Gifts that reflect purpose, equity & meaningful impact."
+                            },
+                            {
+                                icon: UserCheck,
+                                title: "Authentic Leadership",
+                                desc: "Human-centered gifting that strengthens workplace culture."
+                            },
+                            {
+                                icon: Briefcase,
+                                title: "Human Narrative",
+                                desc: "Gifts that express identity and create emotional resonance."
+                            },
+                            {
+                                icon: Gift,
+                                title: "Culture & Craftsmanship",
+                                desc: "Appreciation rooted in heritage and artisan-made products."
+                            }
+                        ].map((item, idx) => (
+                            <div
+                                key={idx}
+                                className="bg-white rounded-[14px] p-8 shadow-[0_10px_30px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-[6px] hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] group flex flex-col items-start border border-gray-50"
+                            >
+                                <div className="w-[50px] h-[50px] rounded-full bg-[#8E2A8B]/10 flex items-center justify-center mb-6 transition-colors duration-300 group-hover:bg-[#8E2A8B]/20">
+                                    <item.icon className="text-[#8E2A8B] transition-all duration-300 group-hover:scale-110" size={26} />
+                                </div>
+                                <h3 className="text-xl lg:text-[22px] font-semibold text-[#2D1B4E] mb-3">
+                                    {item.title}
+                                </h3>
+                                <p className="text-[#6B7280] text-[15px] lg:text-base leading-1.6">
+                                    {item.desc}
+                                </p>
                             </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="mt-1"><UserCheck className="text-[#8E2A8B]" size={24} /></div>
-                            <div>
-                                <h4 className="font-bold text-lg text-[#2D1B4E]">Authentic Leadership</h4>
-                                <p className="text-gray-600 text-sm">Human-centered gifting that strengthens workplace culture.</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="mt-1"><Briefcase className="text-[#8E2A8B]" size={24} /></div>
-                            <div>
-                                <h4 className="font-bold text-lg text-[#2D1B4E]">Human Narrative</h4>
-                                <p className="text-gray-600 text-sm">Gifts that express identity and create emotional resonance.</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4">
-                            <div className="mt-1"><Gift className="text-[#8E2A8B]" size={24} /></div>
-                            <div>
-                                <h4 className="font-bold text-lg text-[#2D1B4E]">Culture & Craftsmanship</h4>
-                                <p className="text-gray-600 text-sm">Appreciation rooted in heritage and artisan-made products.</p>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>
