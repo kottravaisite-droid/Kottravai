@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode, useRef } fro
 import { Product } from '@/data/products';
 import { useAuth } from './AuthContext';
 import { useProducts } from './ProductContext';
+import analytics from '@/utils/analyticsService';
 
 export interface CartItem extends Product {
     quantity: number;
@@ -138,10 +139,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             }
             return [...prev, { id: product.id, quantity, variantWeight: variant?.weight }];
         });
+
+        analytics.trackEvent('add_to_cart', {
+            product_id: product.id,
+            product_name: product.name,
+            quantity,
+            variant: variant?.weight,
+            price: variant?.price || product.price
+        });
     };
 
     const removeFromCart = (productId: string, variantWeight?: string) => {
         setCartItems(prev => prev.filter(item => !(item.id === productId && item.variantWeight === variantWeight)));
+        analytics.trackEvent('remove_from_cart', { product_id: productId, variant_weight: variantWeight });
     };
 
     const updateQuantity = (productId: string, quantity: number, variantWeight?: string) => {
@@ -149,6 +159,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         setCartItems(prev => prev.map(item =>
             (item.id === productId && item.variantWeight === variantWeight) ? { ...item, quantity } : item
         ));
+        analytics.trackEvent('cart_quantity_change', { product_id: productId, new_quantity: quantity, variant_weight: variantWeight });
     };
 
     const clearCart = () => setCartItems([]);

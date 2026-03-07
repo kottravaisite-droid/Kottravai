@@ -33,6 +33,7 @@ export interface Product {
     reviews?: Review[]; // Array of reviews
     stock?: number;
     isBestSeller?: boolean;
+    isGiftBundleItem?: boolean;
     isCustomRequest?: boolean;
     defaultFormFields?: Array<{
         id: string;
@@ -50,6 +51,9 @@ export interface Product {
         required?: boolean;
     }>;
     variants?: ProductVariant[];
+    createdAt?: string;
+    salesCount?: number;
+    rating?: number;
 }
 
 // Sample product to visualize changes immediately

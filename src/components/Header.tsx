@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, User, ShoppingBag, ChevronDown } from 'lucide-react';
+import { Menu, X, Search, User, ShoppingBag, ChevronDown, ArrowUpRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import LoginModal from './LoginModal';
+import analytics from '@/utils/analyticsService';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +29,7 @@ const Header = () => {
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
+            analytics.trackEvent('search_query', { query: searchQuery.trim() });
             navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
             setIsSearchOpen(false);
             setSearchQuery('');
@@ -76,10 +78,28 @@ const Header = () => {
     const LOGO_URL = "/uploads/2026/01/kottravai-logo-final.png";
 
     return (
-        <header className={`relative z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
+        <header className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
+            {/* Top Announcement Bar - Kottravai Alliance */}
+            <div className="bg-[#2D1B4E] text-white py-2 px-4 relative z-30 overflow-hidden">
+                <div className="container mx-auto flex justify-center items-center">
+                    <button
+                        onClick={() => window.open('https://forms.gle/tpheSZPxtxbjUmtn9', '_blank', 'noopener,noreferrer')}
+                        className="group relative flex items-center gap-2 text-[10px] md:text-sm font-black uppercase tracking-[0.2em] hover:text-[#FFD700] transition-all duration-500"
+                    >
+                        <span className="relative z-10 font-outfit text-white">Become a kottravai Alliance</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#FFD700] animate-pulse"></div>
+                        <ArrowUpRight size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform text-[#FFD700]" />
+                    </button>
+
+                    {/* Decorative element */}
+                    <div className="absolute inset-0 opacity-10 pointer-events-none">
+                        <div className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-transparent via-white to-transparent transform -skew-x-12 animate-[shimmer_3s_infinite]"></div>
+                    </div>
+                </div>
+            </div>
+
             {/* Top Utility Bar & Logo Area */}
-            {/* Top Utility Bar & Logo Area */}
-            <div className="container py-2 md:py-4 flex justify-between items-center bg-white border-b border-gray-100 relative z-20">
+            <div className="container py-1 md:py-2 flex justify-between items-center bg-white border-b border-gray-100 relative z-20">
 
                 {/* Left: Utility Links (hidden on mobile) */}
                 <div className="hidden md:flex space-x-6 text-xs md:text-sm text-gray-500 font-medium">
@@ -201,7 +221,7 @@ const Header = () => {
             </div>
 
             {/* Main Navigation Bar (Desktop) */}
-            < div className="hidden md:block bg-[#b5128f]" >
+            <div className="hidden md:block bg-brandPink">
                 <div className="container">
                     <nav className="flex justify-center space-x-8">
                         {mainNavLinks.map((link) => (
@@ -209,7 +229,7 @@ const Header = () => {
                                 <NavLink
                                     to={link.path}
                                     className={({ isActive }) =>
-                                        `flex items-center gap-1 text-[13px] uppercase tracking-wider font-semibold transition-colors py-4 px-2 border-b-2 border-transparent hover:text-white/90 ${isActive ? 'text-white border-white' : 'text-white'
+                                        `flex items-center gap-1 text-[13px] uppercase tracking-wider font-outfit font-medium transition-colors py-4 px-2 border-b-2 border-transparent hover:text-white/90 ${isActive ? 'text-white border-white' : 'text-white'
                                         }`
                                     }
                                 >
@@ -251,7 +271,7 @@ const Header = () => {
                 >
                     <div className="flex flex-col h-full uppercase">
                         {/* Header of drawer */}
-                        <div className="p-4 border-b flex justify-between items-center bg-[#b5128f]">
+                        <div className="p-4 border-b flex justify-between items-center bg-brandPink">
                             <img src={LOGO_URL} alt="Logo" className="h-8 brightness-0 invert" />
                             <button onClick={() => setIsOpen(false)} className="text-white p-1">
                                 <X size={24} />
@@ -346,10 +366,10 @@ const Header = () => {
                         </div>
                     </div>
                 </div>
-            </div >
+            </div>
 
             <LoginModal />
-        </header >
+        </header>
     );
 };
 

@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS products (
     features TEXT[],     -- Array of strings
     images TEXT[],       -- Array of strings (additional images)
     is_best_seller BOOLEAN DEFAULT FALSE,
+    is_gift_bundle_item BOOLEAN DEFAULT FALSE,
     is_custom_request BOOLEAN DEFAULT FALSE,
     custom_form_config JSONB,
     default_form_fields JSONB,

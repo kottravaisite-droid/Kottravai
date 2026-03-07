@@ -35,15 +35,16 @@ const Footer = () => {
                 {/* Col 1: Brand & Address */}
                 <div className="space-y-6">
                     <Link to="/" className="inline-block">
-                        <div className="text-2xl font-bold tracking-wider">
-                            <span className="text-[#d846ef]">kottrav</span>
-                            <span className="text-[#a21caf]">ai</span>
-                        </div>
+                        <img
+                            src="/uploads/2026/01/kottravai-logo-final.png"
+                            alt="Kottravai"
+                            className="h-12 md:h-14 object-contain -ml-3"
+                        />
                     </Link>
                     <div className="text-gray-400 text-sm space-y-2 leading-relaxed">
                         <p>
                             Vazhai Incubator<br />
-                            S Veerachamy Chettiar college,<br />
+                            S Veerasamy Chettiar college,<br />
                             Puliyangudi - 627855
                         </p>
                         <p className="pt-2">
@@ -84,7 +85,6 @@ const Footer = () => {
                         <li><Link to="/refund-policy" className="hover:text-[#d846ef] transition-colors">Refund Policy</Link></li>
                         <li><Link to="/terms-of-service" className="hover:text-[#d846ef] transition-colors">Terms Of Service</Link></li>
                         <li><Link to="/privacy-policy" className="hover:text-[#d846ef] transition-colors">Privacy Policy</Link></li>
-                        <li><Link to="/sitemap" className="hover:text-[#d846ef] transition-colors">Sitemap</Link></li>
                     </ul>
                 </div>
 
@@ -129,7 +129,7 @@ const Footer = () => {
             {showScrollTop && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-[220px] md:bottom-[160px] right-6 md:right-8 w-10 h-10 md:w-12 md:h-12 border border-gray-100 bg-white rounded-full flex items-center justify-center text-[#b5128f] shadow-2xl transition-all z-[90] hover:scale-110 active:scale-95"
+                    className="fixed bottom-[148px] md:bottom-[92px] right-6 md:right-8 w-10 h-10 md:w-12 md:h-12 border border-gray-100 bg-white rounded-full flex items-center justify-center text-[#b5128f] shadow-2xl transition-all z-[90] hover:scale-110 active:scale-95"
                     aria-label="Scroll to top"
                 >
                     <ChevronUp size={24} />

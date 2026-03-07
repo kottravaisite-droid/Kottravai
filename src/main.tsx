@@ -14,10 +14,8 @@ import { OrderProvider } from './context/OrderContext'
 import { PartnerProvider } from './context/PartnerContext'
 import { AuthProvider } from './context/AuthContext'
 import { WishlistProvider } from './context/WishlistContext'
-import { initAnalytics } from './utils/analytics'
-
-// Initialize Zero-Cost Analytics
-initAnalytics();
+// Analytics initialization handled by analyticsService.ts singleton
+// No manual init required here
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
