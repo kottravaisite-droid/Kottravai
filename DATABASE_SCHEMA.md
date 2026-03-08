@@ -34,9 +34,6 @@ Generated on: 7/3/2026, 5:32:40 pm
 - `products_slug_key`: `CREATE UNIQUE INDEX products_slug_key ON public.products USING btree (slug)`
 - `idx_products_slug`: `CREATE INDEX idx_products_slug ON public.products USING btree (slug)`
 - `idx_products_category`: `CREATE INDEX idx_products_category ON public.products USING btree (category)`
-
-*Total Records: 51 products*
-
 ---
 
 ## Table: `reviews`
