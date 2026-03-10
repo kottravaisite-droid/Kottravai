@@ -1,6 +1,8 @@
-import { Heart, Globe, ChevronLeft, ChevronRight, Users, HeartPulse, Wallet, Sprout, MapPin, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, ArrowRight, Target, Lightbulb } from 'lucide-react';
 import MainLayout from '@/layouts/MainLayout';
 import { useState, useEffect } from 'react';
+import VideoGallery from '@/components/home/VideoGallery';
+import TrustedPartners from '@/components/home/TrustedPartners';
 
 const TeamSlider = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -11,21 +13,13 @@ const TeamSlider = () => {
         const handleResize = () => {
             if (window.innerWidth < 640) setVisibleCards(1);
             else if (window.innerWidth < 1024) setVisibleCards(2);
+            else if (window.innerWidth < 1280) setVisibleCards(3);
             else setVisibleCards(4);
         };
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
     }, []);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (totalCards > visibleCards) {
-                setCurrentIndex((prev) => (prev + 1) % (totalCards - visibleCards + 1));
-            }
-        }, 6000);
-        return () => clearInterval(interval);
-    }, [currentIndex, visibleCards, totalCards]);
 
     const nextSlide = () => {
         setCurrentIndex((prev) => (prev + 1) % (totalCards - visibleCards + 1));
@@ -48,11 +42,11 @@ const TeamSlider = () => {
                             className="flex-shrink-0 px-4 text-center group"
                             style={{ width: `${100 / visibleCards}%` }}
                         >
-                            <div className="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-gray-100 mb-4 shadow-sm">
+                            <div className="w-52 h-52 mx-auto rounded-full overflow-hidden border-4 border-gray-100 mb-6 shadow-lg group-hover:border-[#8E2A8B]/30 transition-all duration-500">
                                 <img
                                     src={member.image}
                                     alt={member.name}
-                                    className="w-full h-full object-cover object-top"
+                                    className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-700"
                                 />
                             </div>
                             <div className="px-1">
@@ -80,6 +74,116 @@ const TeamSlider = () => {
                         <ChevronRight size={20} />
                     </button>
                 </>
+            )}
+        </div>
+    );
+};
+
+const AdvisoryPanelSlider = () => {
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [visibleCards, setVisibleCards] = useState(3);
+    const totalCards = advisoryPanel.length;
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (window.innerWidth < 768) setVisibleCards(1);
+            else if (window.innerWidth < 1280) setVisibleCards(2);
+            else setVisibleCards(3);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const nextSlide = () => {
+        if (currentIndex < totalCards - visibleCards) {
+            setCurrentIndex(currentIndex + 1);
+        } else {
+            setCurrentIndex(0);
+        }
+    };
+
+    const prevSlide = () => {
+        if (currentIndex > 0) {
+            setCurrentIndex(currentIndex - 1);
+        } else {
+            setCurrentIndex(totalCards - visibleCards);
+        }
+    };
+
+    return (
+        <div className="relative group/carousel">
+            <div className="overflow-hidden px-4">
+                <div
+                    className="flex transition-all duration-700 ease-in-out gap-6"
+                    style={{ transform: `translateX(-${currentIndex * (100 / visibleCards)}%)` }}
+                >
+                    {advisoryPanel.map((doc, idx) => (
+                        <div
+                            key={idx}
+                            className="flex-shrink-0"
+                            style={{ width: `calc(${100 / visibleCards}% - ${(6 * (visibleCards - 1)) / visibleCards}px)` }}
+                        >
+                            <div className="bg-white rounded-2xl p-8 shadow-[0_15px_40px_rgba(0,0,0,0.03)] border border-gray-50 flex flex-col h-full hover:shadow-[0_25px_50px_rgba(142,42,139,0.08)] transition-all duration-500 group">
+                                <div className="relative mb-8 -mx-8 -mt-8 overflow-hidden rounded-t-2xl h-80">
+                                    <img
+                                        src={doc.image}
+                                        alt={doc.name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                        style={{ objectPosition: doc.imagePos }}
+                                    />
+
+                                </div>
+
+                                <div className="text-center mb-6">
+                                    <h3 className="text-lg font-black text-[#2D1B4E] mb-1.5">{doc.name}</h3>
+                                    <div className="inline-block bg-[#F8F0FF] px-3 py-1 rounded-full border border-purple-100">
+                                        <p className="text-[#8B2C84] font-black text-[9px] uppercase tracking-widest">{doc.role}</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 mb-8 flex-grow">
+                                    <p className="text-[#8B2C84] italic font-serif text-sm font-bold text-center leading-relaxed opacity-80">
+                                        {doc.quote}
+                                    </p>
+                                    <p className="text-gray-500 text-[13px] leading-relaxed font-semibold text-center opacity-70">
+                                        {doc.desc}
+                                    </p>
+                                </div>
+
+                                <div className="bg-gray-50/80 rounded-xl p-5 border border-gray-100 group-hover:bg-purple-50/30 transition-colors duration-500">
+                                    <p className="text-[9px] font-black uppercase text-[#2D1B4E] tracking-[0.2em] mb-3 opacity-40 text-center">{doc.focusTitle}</p>
+                                    <ul className="space-y-2.5">
+                                        {doc.focusItems.map((item, i) => (
+                                            <li key={i} className="flex items-center gap-2.5 text-[11.5px] font-bold text-[#2D1B4E]/70">
+                                                <div className="w-1 h-1 rounded-full bg-[#8B2C84] shrink-0"></div>
+                                                {item}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Navigation Controls */}
+            {totalCards > visibleCards && (
+                <div className="flex justify-center items-center gap-4 mt-12">
+                    <button
+                        onClick={prevSlide}
+                        className="w-12 h-12 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-[#2D1B4E] hover:bg-[#8B2C84] hover:text-white transition-all duration-300"
+                    >
+                        <ChevronLeft size={20} />
+                    </button>
+                    <button
+                        onClick={nextSlide}
+                        className="w-12 h-12 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-[#2D1B4E] hover:bg-[#8B2C84] hover:text-white transition-all duration-300"
+                    >
+                        <ChevronRight size={20} />
+                    </button>
+                </div>
             )}
         </div>
     );
@@ -156,95 +260,132 @@ const AboutUs = () => {
                 </section>
 
                 {/* Our Impact Section - Premium Redesign */}
-                <section className="py-10 relative overflow-hidden bg-gradient-to-b from-white via-purple-50/20 to-white">
-
+                <section className="py-24 bg-[#FAF9F6] relative overflow-hidden">
+                    {/* Artistic background elements */}
+                    <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#8E2A8B]/5 rounded-full blur-[120px] -mr-64 -mt-64"></div>
+                    <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#2D1B4E]/5 rounded-full blur-[120px] -ml-64 -mb-64 opacity-50"></div>
 
                     <div className="container mx-auto px-4 max-w-7xl relative z-10">
-                        <div className="text-center mb-12">
-                            <h2 className="text-4xl md:text-5xl font-bold text-[#2D1B4E] tracking-tight mb-6">
-                                Our Impact
-                            </h2>
-                            <div className="h-[2px] w-24 mx-auto bg-gradient-to-r from-transparent via-[#8E2A8B] to-transparent opacity-60"></div>
+                        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+                            <div className="max-w-2xl">
+                                <div className="inline-block px-4 py-1.5 bg-[#F8F0FF] rounded-full border border-purple-100 mb-6">
+                                    <p className="text-[#8E2A8B] font-black uppercase tracking-[0.3em] text-[10px]">Purpose Driven</p>
+                                </div>
+                                <h2 className="text-4xl md:text-6xl font-black text-[#2D1B4E] leading-[1.1] tracking-tight">
+                                    Measuring <br className="hidden lg:block" /> Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8E2A8B] to-[#2D1B4E]">Social Impact</span>
+                                </h2>
+                            </div>
+                            <p className="text-gray-500 max-w-sm font-medium leading-relaxed text-lg">
+                                We measure success not just in sales, but in the livelihoods we uplift and the traditions we preserve through every artisan creation.
+                            </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
-                            {/* Card 1 */}
-                            <div className="group relative p-8 rounded-[2rem] bg-white/60 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_-15px_rgba(142,42,139,0.1)] hover:-translate-y-2 transition-all duration-500 ease-out">
-                                <div className="w-16 h-16 mb-8 rounded-2xl bg-gradient-to-br from-[#F8F0FF] to-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ease-out border border-purple-50/50">
-                                    <Users className="w-7 h-7 text-[#8B2C84] opacity-90" />
-                                </div>
-                                <h3 className="text-xl font-bold text-[#2D1B4E] mb-4 tracking-tight">Women Empowered</h3>
-                                <p className="text-[15px] text-gray-600 leading-[1.8] font-medium opacity-90">
-                                    Rural women transition from hazardous Beedi work into safe, skilled, and dignified livelihoods.
-                                </p>
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {[
+                                {
+                                    title: "Women Empowered",
+                                    desc: "Rural women transition from hazardous Beedi work into safe, skilled, and dignified livelihoods.",
+                                    image: "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=1000&auto=format&fit=crop",
+                                    bgColor: "#F8F0FF"
+                                },
+                                {
+                                    title: "Health & Wellbeing",
+                                    desc: "Reduced exposure to toxic environments leads to improved physical health and quality of life.",
+                                    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=1000&auto=format&fit=crop",
+                                    bgColor: "#FFF5F5"
+                                },
+                                {
+                                    title: "Stable Livelihoods",
+                                    desc: "Consistent income and skill development bring long-term financial security to families.",
+                                    image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1000&auto=format&fit=crop",
+                                    bgColor: "#F0F7FF"
+                                },
+                                {
+                                    title: "Sustainable Future",
+                                    desc: "Eco-friendly materials and ethical production support communities and the planet together.",
+                                    image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=1000&auto=format&fit=crop",
+                                    bgColor: "#F0FFF4"
+                                }
+                            ].map((item, idx) => (
+                                <div
+                                    key={idx}
+                                    className="group relative bg-white rounded-2xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-white hover:border-[#8E2A8B]/30 hover:shadow-[0_40px_80px_rgba(142,42,139,0.15)] transition-all duration-700 flex flex-col items-center text-center overflow-hidden"
+                                >
+                                    {/* Shorter Image Background Wrapper */}
+                                    <div className="absolute inset-0 h-44 overflow-hidden" style={{ backgroundColor: item.bgColor }}>
+                                        <img
+                                            src={item.image}
+                                            alt=""
+                                            className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-white/80 to-white"></div>
+                                    </div>
 
-                            {/* Card 2 */}
-                            <div className="group relative p-8 rounded-[2rem] bg-white/60 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_-15px_rgba(142,42,139,0.1)] hover:-translate-y-2 transition-all duration-500 ease-out md:translate-y-8 lg:translate-y-0">
-                                <div className="w-16 h-16 mb-8 rounded-2xl bg-gradient-to-br from-[#F8F0FF] to-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ease-out border border-purple-50/50">
-                                    <HeartPulse className="w-7 h-7 text-[#8B2C84] opacity-90" />
+                                    <div className="relative z-10 pt-32 pb-4 flex flex-col items-center">
+                                        <h3 className="text-xl font-black text-[#2D1B4E] mb-3 tracking-tight group-hover:text-[#8E2A8B] transition-colors duration-500">
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-gray-500 text-[14px] leading-relaxed font-semibold opacity-90 max-w-[240px]">
+                                            {item.desc}
+                                        </p>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold text-[#2D1B4E] mb-4 tracking-tight">Health & Wellbeing</h3>
-                                <p className="text-[15px] text-gray-600 leading-[1.8] font-medium opacity-90">
-                                    Reduced exposure to toxic environments leads to improved physical health and quality of life.
-                                </p>
-                            </div>
-
-                            {/* Card 3 */}
-                            <div className="group relative p-8 rounded-[2rem] bg-white/60 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_-15px_rgba(142,42,139,0.1)] hover:-translate-y-2 transition-all duration-500 ease-out">
-                                <div className="w-16 h-16 mb-8 rounded-2xl bg-gradient-to-br from-[#F8F0FF] to-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ease-out border border-purple-50/50">
-                                    <Wallet className="w-7 h-7 text-[#8B2C84] opacity-90" />
-                                </div>
-                                <h3 className="text-xl font-bold text-[#2D1B4E] mb-4 tracking-tight">Stable Livelihoods</h3>
-                                <p className="text-[15px] text-gray-600 leading-[1.8] font-medium opacity-90">
-                                    Consistent income and skill development bring long-term financial security to families.
-                                </p>
-                            </div>
-
-                            {/* Card 4 */}
-                            <div className="group relative p-8 rounded-[2rem] bg-white/60 backdrop-blur-xl border border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_-15px_rgba(142,42,139,0.1)] hover:-translate-y-2 transition-all duration-500 ease-out md:translate-y-8 lg:translate-y-0">
-                                <div className="w-16 h-16 mb-8 rounded-2xl bg-gradient-to-br from-[#F8F0FF] to-white shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform duration-500 ease-out border border-purple-50/50">
-                                    <Sprout className="w-7 h-7 text-[#8B2C84] opacity-90" />
-                                </div>
-                                <h3 className="text-xl font-bold text-[#2D1B4E] mb-4 tracking-tight">Sustainable Future</h3>
-                                <p className="text-[15px] text-gray-600 leading-[1.8] font-medium opacity-90">
-                                    Eco-friendly materials and ethical production support communities and the planet together.
-                                </p>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </section>
 
                 {/* Mission & Vision */}
-                <section className="py-20 bg-gray-50 relative overflow-hidden">
-                    <div className="container mx-auto px-4 relative z-10">
-                        <div className="text-center mb-16">
-                            <h2 className="text-3xl md:text-4xl font-black text-[#2D1B4E] mb-4">
-                                Heart & Horizon
+                <section className="pt-16 pb-10 bg-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#8E2A8B]/4 rounded-full blur-[140px] -mr-80 -mt-80 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#2D1B4E]/4 rounded-full blur-[120px] -ml-64 -mb-64 pointer-events-none"></div>
+
+                    <div className="container mx-auto px-4 max-w-7xl relative z-10">
+                        {/* Section Header */}
+                        <div className="text-center max-w-2xl mx-auto mb-20">
+                            <div className="inline-block px-4 py-1.5 bg-[#F8F0FF] rounded-full border border-purple-100 mb-6">
+                                <p className="text-[#8E2A8B] font-black uppercase tracking-[0.3em] text-[10px]">Our Purpose</p>
+                            </div>
+                            <h2 className="text-4xl md:text-5xl font-black text-[#2D1B4E] leading-tight mb-4">
+                                Mission &amp; <span className="text-[#8E2A8B]">Vision</span>
                             </h2>
-                            <p className="max-w-3xl mx-auto text-lg text-gray-600 leading-relaxed">
-                                Kottravai exists at the intersection of timeless heritage and ethical progress. We are not just creating products; we are cultivating a movement.
+                            <p className="text-gray-500 font-medium leading-relaxed">
+                                Rooted in purpose, driven by impact — everything we do begins with why.
                             </p>
                         </div>
 
-                        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-                            <div className="bg-white p-10 rounded-2xl shadow-lg border border-purple-50 hover:shadow-xl transition-shadow duration-300">
-                                <div className="w-16 h-16 bg-purple-50 rounded-xl flex items-center justify-center mb-6 text-[#8B2C84]">
-                                    <Heart size={32} />
+                        {/* Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
+                            {/* Mission Card */}
+                            <div className="group relative bg-[#F8F0FF] rounded-3xl p-10 border border-purple-100 hover:border-[#8E2A8B]/30 hover:shadow-[0_30px_60px_rgba(142,42,139,0.12)] transition-all duration-700 flex flex-col">
+                                <div className="w-14 h-14 rounded-2xl bg-[#8E2A8B] flex items-center justify-center mb-8 shadow-lg group-hover:scale-110 transition-transform duration-500">
+                                    <Target size={26} strokeWidth={1.5} className="text-white" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-[#2D1B4E] mb-4">Our Mission</h3>
-                                <p className="text-gray-600 leading-relaxed">
-                                    To revive and elevate the ancient craft traditions of India by creating sustainable, dignified livelihoods for rural women artisans. We are committed to a zero-waste philosophy, ensuring that every creation contributes to the healing of our planet while celebrating the unparalleled beauty of human skill.
+                                <div className="inline-block px-3 py-1 bg-[#8E2A8B]/10 rounded-full mb-4">
+                                    <span className="text-[#8E2A8B] font-black text-[9px] uppercase tracking-[0.25em]">Mission</span>
+                                </div>
+                                <h3 className="text-2xl font-black text-[#2D1B4E] mb-4 leading-tight">
+                                    Dignified Livelihoods Through Craft
+                                </h3>
+                                <p className="text-gray-600 text-[15px] leading-relaxed font-medium flex-grow">
+                                    To empower rural women artisans by providing sustainable, skilled livelihoods through eco-friendly handmade products — enabling them to earn independent incomes while preserving traditional crafts and building resilient communities.
                                 </p>
                             </div>
 
-                            <div className="bg-white p-10 rounded-2xl shadow-lg border border-purple-50 hover:shadow-xl transition-shadow duration-300">
-                                <div className="w-16 h-16 bg-indigo-50 rounded-xl flex items-center justify-center mb-6 text-[#2D1B4E]">
-                                    <Globe size={32} />
+                            {/* Vision Card */}
+                            <div className="group relative bg-[#2D1B4E] rounded-3xl p-10 border border-[#2D1B4E] hover:shadow-[0_30px_60px_rgba(45,27,78,0.25)] transition-all duration-700 flex flex-col">
+                                <div className="w-14 h-14 rounded-2xl bg-[#8E2A8B] flex items-center justify-center mb-8 shadow-lg group-hover:scale-110 transition-transform duration-500">
+                                    <Lightbulb size={26} strokeWidth={1.5} className="text-white" />
                                 </div>
-                                <h3 className="text-2xl font-bold text-[#2D1B4E] mb-4">Our Vision</h3>
-                                <p className="text-gray-600 leading-relaxed">
-                                    To be the global beacon of ethical luxury, redefining wealth not as accumulation, but as impact. We envision a world where luxury is synonymous with conscience, where every purchase tells a story of empowerment, and where traditional Indian artistry earns its rightful place on the world stage.
+                                <div className="inline-block px-3 py-1 bg-white/10 rounded-full mb-4">
+                                    <span className="text-white/80 font-black text-[9px] uppercase tracking-[0.25em]">Vision</span>
+                                </div>
+                                <h3 className="text-2xl font-black text-white mb-4 leading-tight">
+                                    A World Where Craft Creates Change
+                                </h3>
+                                <p className="text-white/75 text-[15px] leading-relaxed font-medium flex-grow">
+                                    To be India's leading women-led artisan platform — where every handcrafted product is a symbol of sustainability, cultural pride, and economic empowerment, inspiring a global movement toward conscious and purposeful living.
                                 </p>
                             </div>
                         </div>
@@ -252,56 +393,90 @@ const AboutUs = () => {
                 </section>
 
                 {/* Our Hubs Section */}
-                <section className="py-20 bg-white">
-                    <div className="container mx-auto px-4">
-                        <div className="text-center max-w-3xl mx-auto mb-16">
-                            <span className="text-sm font-bold text-[#8E2A8B] uppercase tracking-widest mb-3 block">Our Network</span>
-                            <h2 className="text-3xl md:text-4xl font-black text-[#2D1B4E] mb-4">
+                <section className="pt-10 pb-20 bg-white">
+                    <div className="container mx-auto px-4 max-w-7xl">
+
+                        {/* Section Header — centered */}
+                        <div className="text-center max-w-[600px] mx-auto mb-14">
+                            <h2 className="text-4xl md:text-5xl font-black text-[#2D1B4E] leading-tight mb-4">
                                 Our <span className="text-[#8E2A8B]">Hubs</span>
                             </h2>
-                            <p className="text-lg text-gray-600">
+                            <p className="text-gray-500 text-base font-medium leading-relaxed">
                                 Empowering communities across our growing network of artisan centers.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {/* Editorial 4-col card grid — 4 desktop / 2 tablet / 1 mobile */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                             {[
                                 {
-                                    name: "Thenkasi Hub",
+                                    name: "Coconut shell hub",
                                     location: "Thenkasi, Tamil Nadu",
                                     desc: "Specializing in palm leaf weaving and natural fiber crafts.",
-                                    icon: Sprout
+                                    image: "https://images.unsplash.com/photo-1596392927852-2a18c336fb78?q=80&w=800&auto=format&fit=crop",
+                                    link: "#"
                                 },
                                 {
-                                    name: "Madurai Hub",
+                                    name: "Teracotta jwellery hub",
                                     location: "Madurai, Tamil Nadu",
                                     desc: "The heart of our traditional textile and cotton weaving operations.",
-                                    icon: Globe
+                                    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800&auto=format&fit=crop",
+                                    link: "#"
                                 },
                                 {
-                                    name: "Coimbatore Hub",
+                                    name: "Banana fiber hub",
                                     location: "Coimbatore, Tamil Nadu",
                                     desc: "Focused on eco-friendly packaging and sustainable materials.",
-                                    icon: Heart
+                                    image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=800&auto=format&fit=crop",
+                                    link: "#"
                                 },
                                 {
-                                    name: "Chennai Hub",
+                                    name: "Food hub",
                                     location: "Chennai, Tamil Nadu",
                                     desc: "Our central design studio and logistics coordination center.",
-                                    icon: MapPin
+                                    image: "https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=800&auto=format&fit=crop",
+                                    link: "#"
                                 }
                             ].map((hub, idx) => (
-                                <div key={idx} className="bg-[#F8F0FF] rounded-2xl p-8 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center">
-                                    <h3 className="text-xl font-bold text-[#2D1B4E] mb-2">{hub.name}</h3>
-                                    <p className="text-sm font-bold text-[#8E2A8B] mb-4 flex items-center gap-1 justify-center">
-                                        <MapPin size={12} /> {hub.location}
-                                    </p>
-                                    <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                                <div key={idx} className="group flex flex-col">
+
+                                    {/* Image — full width, fixed height, slight zoom on hover */}
+                                    <div className="w-full h-52 overflow-hidden rounded-sm mb-5">
+                                        <img
+                                            src={hub.image}
+                                            alt={hub.name}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                                        />
+                                    </div>
+
+                                    {/* Hub Name */}
+                                    <h3 className="text-[17px] font-bold text-[#2D1B4E] mb-1.5 leading-snug group-hover:text-[#8E2A8B] transition-colors duration-300">
+                                        {hub.name}
+                                    </h3>
+
+                                    {/* Location */}
+                                    <div className="flex items-center gap-1.5 mb-3">
+                                        <MapPin size={12} className="text-[#8E2A8B] shrink-0" />
+                                        <span className="text-[#8E2A8B] text-[12px] font-semibold">{hub.location}</span>
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-gray-500 text-[14px] leading-relaxed mb-4 flex-grow">
                                         {hub.desc}
                                     </p>
-                                    <button className="mt-auto text-xs font-bold uppercase tracking-widest text-[#2D1B4E] hover:text-[#8E2A8B] transition-colors flex items-center gap-2">
-                                        View Hub <ArrowRight size={14} />
-                                    </button>
+
+                                    {/* View Hub → underline link */}
+                                    <a
+                                        href={hub.link}
+                                        className="group/link inline-flex items-center gap-1.5 text-[#2D1B4E] font-semibold text-[14px] underline underline-offset-4 decoration-[#2D1B4E]/30 hover:decoration-[#8E2A8B] hover:text-[#8E2A8B] transition-all duration-300 w-fit"
+                                    >
+                                        View Hub
+                                        <ArrowRight
+                                            size={14}
+                                            className="group-hover/link:translate-x-1 transition-transform duration-300"
+                                        />
+                                    </a>
                                 </div>
                             ))}
                         </div>
@@ -369,83 +544,17 @@ const AboutUs = () => {
                             <p className="text-xl text-gray-600 font-light leading-relaxed">Our formulations are guided by traditional wisdom and validated by modern medical experts.</p>
                         </div>
 
-                        <div className="flex flex-col gap-8 max-w-5xl mx-auto">
-                            {[
-                                {
-                                    name: "Dr. Saranya",
-                                    role: "Product Formulator & Nutritionist",
-                                    image: "/doc1.jpg",
-                                    imagePos: "center",
-                                    quote: "\"Food is the first medicine.\"",
-                                    desc: "As our lead formulator, Dr. Saranya ensures every Kottravai edible product balances traditional wisdom with modern nutritional integrity.",
-                                    focusTitle: "Kottravai Expertise",
-                                    focusItems: ["Therapeutic nutrition", "Bioactive ingredients", "Preventive health"]
-                                },
-                                {
-                                    name: "Dr. N. Venthan",
-                                    role: "Integrative Medicine Specialist",
-                                    image: "/doc2.jpeg",
-                                    imagePos: "center 20%",
-                                    quote: "\"Holistic harmony through nature.\"",
-                                    desc: "An Integrative Medicine Specialist (BNYS) who brings holistic strategy to Kottravai's wellness expansion and natural restoration.",
-                                    focusTitle: "Kottravai Expertise",
-                                    focusItems: ["Holistic healing strategy", "Natural restoration", "Yoga-based wellness"]
-                                },
-                                {
-                                    name: "Dr. Mounisha",
-                                    role: "Medical Advisor (MBBS/MD)",
-                                    image: "/doc3.jpeg",
-                                    imagePos: "top",
-                                    quote: "\"Safety first, nature always.\"",
-                                    desc: "Practicing in Obstetrics & Gynaecology, Dr. Mounisha validates the safety of Kottravai products for women's clinical purity standards.",
-                                    focusTitle: "Kottravai Expertise",
-                                    focusItems: ["Clinical purity validation", "Women's health safety", "Standardized medical hygiene"]
-                                }
-                            ].map((doc, idx) => (
-                                <div key={idx} className="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-xl shadow-purple-900/5 group hover:-translate-y-2 transition-all duration-500 border border-white hover:border-purple-50 flex flex-col lg:flex-row items-center gap-8 lg:gap-12 relative overflow-hidden">
-                                    {/* Image Section */}
-                                    <div className="w-40 h-40 lg:w-48 lg:h-48 shrink-0 rounded-[2rem] overflow-hidden bg-gray-100 shadow-inner group-hover:shadow-[#8B2C84]/10 transition-all duration-500 border border-gray-100 relative">
-                                        <div className="absolute inset-0 bg-[#2D1B4E]/0 group-hover:bg-[#2D1B4E]/10 transition-colors duration-500 z-10"></div>
-                                        <img
-                                            src={doc.image}
-                                            alt={doc.name}
-                                            className="w-full h-full object-cover transform transition-transform duration-700 group-hover:scale-110"
-                                            style={{ objectPosition: doc.imagePos }}
-                                        />
-                                    </div>
-
-                                    {/* Content Section */}
-                                    <div className="flex-grow text-center lg:text-left space-y-4">
-                                        <div>
-                                            <h3 className="text-2xl font-black text-[#2D1B4E] mb-2">{doc.name}</h3>
-                                            <div className="inline-block bg-[#F8F0FF] px-4 py-1.5 rounded-full border border-purple-100">
-                                                <p className="text-[#8B2C84] font-bold text-[10px] uppercase tracking-widest">{doc.role}</p>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-3">
-                                            <p className="font-bold text-[#8B2C84] italic text-sm font-serif">{doc.quote}</p>
-                                            <p className="text-gray-600 text-[15px] leading-relaxed font-medium">{doc.desc}</p>
-                                        </div>
-                                    </div>
-
-                                    {/* Expertise Box */}
-                                    <div className="w-full lg:w-64 shrink-0 bg-gray-50/80 rounded-2xl p-6 border border-gray-100 group-hover:bg-purple-50/30 transition-all duration-500">
-                                        <p className="text-[10px] font-black uppercase text-[#2D1B4E] tracking-[0.2em] mb-4 opacity-50 text-center lg:text-left">{doc.focusTitle}</p>
-                                        <ul className="space-y-3">
-                                            {doc.focusItems.map((item, i) => (
-                                                <li key={i} className="flex items-center gap-3 text-[13px] font-bold text-[#2D1B4E]/80 justify-center lg:justify-start">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#8B2C84] shrink-0"></div>
-                                                    {item}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                        <AdvisoryPanelSlider />
                     </div>
                 </section>
+
+
+
+                {/* Trusted By */}
+                <TrustedPartners />
+
+                {/* Watch Kottravai in Action */}
+                <VideoGallery />
 
                 {/* What Makes Kottravai Different Section */}
                 <section className="py-[90px] px-5 bg-white">
@@ -581,9 +690,42 @@ const AboutUs = () => {
                     </div>
                 </section>
             </div>
-        </MainLayout >
+        </MainLayout>
     );
 };
+
+const advisoryPanel = [
+    {
+        name: "Dr. Saranya",
+        role: "Product Formulator & Nutritionist",
+        image: "/doc1.jpg",
+        imagePos: "top",
+        quote: "\"Food is the first medicine.\"",
+        desc: "As our lead formulator, Dr. Saranya ensures every Kottravai edible product balances traditional wisdom with modern nutritional integrity.",
+        focusTitle: "Kottravai Expertise",
+        focusItems: ["Therapeutic nutrition", "Bioactive ingredients", "Preventive health"]
+    },
+    {
+        name: "Dr. N. Venthan",
+        role: "Integrative Medicine Specialist",
+        image: "/doc2.jpeg",
+        imagePos: "center 20%",
+        quote: "\"Holistic harmony through nature.\"",
+        desc: "An Integrative Medicine Specialist (BNYS) who brings holistic strategy to Kottravai's wellness expansion and natural restoration.",
+        focusTitle: "Kottravai Expertise",
+        focusItems: ["Holistic healing strategy", "Natural restoration", "Yoga-based wellness"]
+    },
+    {
+        name: "Dr. Mounisha",
+        role: "Medical Advisor (MBBS/MD)",
+        image: "/doc3.jpeg",
+        imagePos: "top",
+        quote: "\"Safety first, nature always.\"",
+        desc: "Practicing in Obstetrics & Gynaecology, Dr. Mounisha validates the safety of Kottravai products for women's clinical purity standards.",
+        focusTitle: "Kottravai Expertise",
+        focusItems: ["Clinical purity validation", "Women's health safety", "Standardized medical hygiene"]
+    }
+];
 
 const teamMembers = [
     {
@@ -596,11 +738,7 @@ const teamMembers = [
         role: "Developer",
         image: "/team/member-1.jpg"
     },
-    {
-        name: "Mohammed Safeek",
-        role: "Sales Head",
-        image: "/team/member-2.jpg"
-    },
+
     {
         name: "Gnana Jency",
         role: "Hub Manager",

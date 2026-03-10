@@ -5,7 +5,7 @@ const VideoGallery = () => {
     const { videos } = useVideos();
 
     return (
-        <section className="py-10 bg-white">
+        <section className="py-8 md:py-12 bg-white">
             <div className="container px-4">
                 {/* Header */}
                 <div className="text-center max-w-3xl mx-auto mb-6">

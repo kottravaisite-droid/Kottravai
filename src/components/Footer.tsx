@@ -1,16 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Facebook, Instagram, Linkedin, Youtube, ArrowRight, ChevronUp } from 'lucide-react';
+import { ChevronUp, HelpCircle, Gift, LayoutDashboard, Megaphone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Footer = () => {
     const [showScrollTop, setShowScrollTop] = useState(false);
-    const [openSection, setOpenSection] = useState<string | null>(null);
-
-    const toggleSection = (section: string) => {
-        if (window.innerWidth < 1024) { // Only toggle on mobile
-            setOpenSection(openSection === section ? null : section);
-        }
-    };
 
     useEffect(() => {
         const checkScroll = () => {
@@ -30,106 +23,111 @@ const Footer = () => {
     };
 
     return (
-        <footer className="bg-black text-white pt-12 lg:pt-20 pb-10 relative">
-            <div className="mx-auto max-w-[1440px] px-6 sm:px-8 md:px-12 lg:px-20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-16">
-                {/* Col 1: Brand & Address */}
-                <div className="space-y-6">
-                    <Link to="/" className="inline-block">
-                        <div className="text-2xl font-bold tracking-wider">
-                            <span className="text-[#d846ef]">kottrav</span>
-                            <span className="text-[#a21caf]">ai</span>
-                        </div>
-                    </Link>
-                    <div className="text-gray-400 text-sm space-y-2 leading-relaxed">
-                        <p>
-                            Vazhai Incubator<br />
-                            S Veerachamy Chettiar college,<br />
-                            Puliyangudi - 627855
-                        </p>
-                        <p className="pt-2">
-                            Phone: <a href="tel:+919787030811" className="hover:text-[#d846ef] transition-colors">+91 97870 30811</a>
-                        </p>
+        <footer className="bg-[#172337] text-white pt-10 font-sans tracking-tight">
+            <div className="mx-auto max-w-[1440px] px-8 md:px-12 lg:px-20 grid grid-cols-2 md:grid-cols-2 lg:grid-cols-12 gap-y-10 gap-x-4 pb-10 border-b border-gray-700">
+                {/* ABOUT */}
+                <div className="lg:col-span-2">
+                    <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">About</h4>
+                    <ul className="space-y-2 text-[12px] font-bold">
+                        <li><Link to="/contact" className="hover:underline">Contact Us</Link></li>
+                        <li><Link to="/about" className="hover:underline">About Us</Link></li>
+                        <li><Link to="/blog" className="hover:underline">Kottravai Stories</Link></li>
+                    </ul>
+                </div>
+
+                {/* HELP */}
+                <div className="lg:col-span-2">
+                    <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">Help</h4>
+                    <ul className="space-y-2 text-[12px] font-bold">
+                        <li><Link to="/shipping-policy" className="hover:underline">Shipping</Link></li>
+                        <li><Link to="/refund-policy" className="hover:underline">Cancellation & Returns</Link></li>
+                        <li><Link to="/faqs" className="hover:underline">FAQ</Link></li>
+                    </ul>
+                </div>
+
+                {/* CONSUMER POLICY */}
+                <div className="lg:col-span-2">
+                    <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">Consumer Policy</h4>
+                    <ul className="space-y-2 text-[12px] font-bold">
+                        <li><Link to="/terms-of-service" className="hover:underline">Terms Of Use</Link></li>
+                        <li><Link to="/security" className="hover:underline">Security</Link></li>
+                        <li><Link to="/privacy-policy" className="hover:underline">Privacy</Link></li>
+                    </ul>
+                </div>
+
+                {/* SOCIAL */}
+                <div className="lg:col-span-1">
+                    <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">Social</h4>
+                    <ul className="space-y-2 text-[12px] font-bold">
+                        <li><a href="https://www.facebook.com/profile.php?id=61582600756315" className="hover:underline">Facebook</a></li>
+                        <li><a href="https://x.com/kottravai_in" className="hover:underline">Twitter</a></li>
+                        <li><a href="https://www.youtube.com/@Kottravai_in" className="hover:underline">YouTube</a></li>
+                        <li><a href="https://www.instagram.com/kottravai_in/" className="hover:underline">Instagram</a></li>
+                        <li><a href="https://in.linkedin.com/company/kottravai" className="hover:underline">LinkedIn</a></li>
+                    </ul>
+                </div>
+
+                {/* MAIL US */}
+                <div className="border-l border-gray-700 pl-8 hidden lg:block lg:col-span-2 col-start-8">
+                    <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">Mail Us:</h4>
+                    <div className="text-[12px] leading-relaxed space-y-1">
+                        <p>Vazhai Incubator,</p>
+                        <p>S Veerasamy Chettiar College,</p>
+                        <p>Puliyangudi - 627855,</p>
+                        <p>Tamil Nadu, India</p>
                     </div>
                 </div>
 
-                {/* Col 2: Main Navigation */}
-                <div className="border-b border-gray-800 lg:border-none pb-4 lg:pb-0">
-                    <button
-                        onClick={() => toggleSection('main')}
-                        className="w-full flex items-center justify-between lg:block text-left group"
-                    >
-                        <h4 className="text-lg font-bold lg:mb-8">Main Navigation</h4>
-                        <ChevronUp className={`lg:hidden transition-transform duration-300 ${openSection === 'main' ? '' : 'rotate-180'}`} size={20} />
-                    </button>
-                    <ul className={`lg:block space-y-4 text-sm text-gray-400 mt-4 lg:mt-0 transition-all duration-300 overflow-hidden ${openSection === 'main' ? 'max-h-64 opacity-100' : 'max-h-0 lg:max-h-none opacity-0 lg:opacity-100'}`}>
-                        <li><Link to="/" className="hover:text-[#d846ef] transition-colors">Home</Link></li>
-                        <li><Link to="/shop" className="hover:text-[#d846ef] transition-colors">Shop By Category</Link></li>
-                        <li><Link to="/about" className="hover:text-[#d846ef] transition-colors">Our Story</Link></li>
-                        <li><Link to="/contact" className="hover:text-[#d846ef] transition-colors">Contact</Link></li>
-                        <li><Link to="/blog" className="hover:text-[#d846ef] transition-colors">Blogs</Link></li>
-                    </ul>
-                </div>
-
-                {/* Col 3: Useful Links */}
-                <div className="border-b border-gray-800 lg:border-none pb-4 lg:pb-0">
-                    <button
-                        onClick={() => toggleSection('useful')}
-                        className="w-full flex items-center justify-between lg:block text-left group"
-                    >
-                        <h4 className="text-lg font-bold lg:mb-8">Useful Links</h4>
-                        <ChevronUp className={`lg:hidden transition-transform duration-300 ${openSection === 'useful' ? '' : 'rotate-180'}`} size={20} />
-                    </button>
-                    <ul className={`lg:block space-y-4 text-sm text-gray-400 mt-4 lg:mt-0 transition-all duration-300 overflow-hidden ${openSection === 'useful' ? 'max-h-64 opacity-100' : 'max-h-0 lg:max-h-none opacity-0 lg:opacity-100'}`}>
-                        <li><Link to="/shipping-policy" className="hover:text-[#d846ef] transition-colors">Shipping Policy</Link></li>
-                        <li><Link to="/refund-policy" className="hover:text-[#d846ef] transition-colors">Refund Policy</Link></li>
-                        <li><Link to="/terms-of-service" className="hover:text-[#d846ef] transition-colors">Terms Of Service</Link></li>
-                        <li><Link to="/privacy-policy" className="hover:text-[#d846ef] transition-colors">Privacy Policy</Link></li>
-                        <li><Link to="/sitemap" className="hover:text-[#d846ef] transition-colors">Sitemap</Link></li>
-                    </ul>
-                </div>
-
-                {/* Col 4: Let's get in touch */}
-                <div className="pt-4 lg:pt-0">
-                    <h4 className="text-lg font-bold mb-6">Let's get in touch</h4>
-                    <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                        Sign up for our newsletter!
-                    </p>
-                    <form className="relative mb-8">
-                        <input
-                            type="email"
-                            placeholder="Enter your email..."
-                            className="w-full bg-[#1a1a1a] border border-gray-800 rounded-lg pl-4 pr-12 py-3 text-sm text-gray-300 focus:outline-none focus:border-[#d846ef] transition-colors"
-                        />
-                        <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-[#d846ef] hover:text-white transition-all text-black">
-                            <ArrowRight size={16} />
-                        </button>
-                    </form>
-
-                    {/* Social Icons */}
-                    <div className="flex space-x-4 lg:space-x-6">
-                        <a href="https://www.facebook.com/profile.php?id=61582600756315" className="bg-white rounded-full p-1.5 text-black hover:bg-[#d846ef] hover:text-white transition-colors"><Facebook size={18} /></a>
-                        <a href="https://www.youtube.com/@Kottravai_in" className="bg-white rounded-full p-1.5 text-black hover:bg-[#d846ef] hover:text-white transition-colors"><Youtube size={18} /></a>
-                        <a href="https://x.com/kottravai_in" className="bg-white rounded-full p-1.5 text-black hover:bg-[#d846ef] hover:text-white transition-colors">
-                            <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                            </svg>
-                        </a>
-                        <a href="https://www.instagram.com/kottravai_in/" className="bg-white rounded-full p-1.5 text-black hover:bg-[#d846ef] hover:text-white transition-colors"><Instagram size={18} /></a>
-                        <a href="https://in.linkedin.com/company/kottravai" className="bg-white rounded-full p-1.5 text-black hover:bg-[#d846ef] hover:text-white transition-colors"><Linkedin size={18} /></a>
+                {/* REGISTERED OFFICE */}
+                <div className="hidden lg:block pl-16 lg:col-span-3">
+                    <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">Registered Office Address:</h4>
+                    <div className="text-[12px] leading-relaxed space-y-1">
+                        <p>Kottravai Handmade Private Limited,</p>
+                        <p>Vazhai Incubator,</p>
+                        <p>S Veerasamy Chettiar College,</p>
+                        <p>Puliyangudi - 627855,</p>
+                        <p>Tamil Nadu, India</p>
+                        <p>Telephone: <a href="tel:+919787030811" className="text-[#2874f0] font-bold hover:underline">+91 97870 30811</a></p>
                     </div>
                 </div>
             </div>
 
             {/* Bottom Bar */}
-            <div className="border-t border-gray-900 mx-auto max-w-[1440px] px-8 md:px-12 lg:px-20 pt-8 text-sm text-gray-500">
-                <p className="text-center lg:text-left">© 2025 – Kottravai. All Rights Reserved.</p>
+            <div className="mx-auto max-w-[1440px] px-8 md:px-12 lg:px-20 py-6 flex flex-wrap items-center justify-between gap-6 text-[14px]">
+                <div className="flex flex-wrap items-center gap-8">
+                    <a
+                        href="https://forms.gle/tpheSZPxtxbjUmtn9"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 hover:text-[#2874f0] transition-colors"
+                    >
+                        <LayoutDashboard size={16} className="text-[#FFD700]" />
+                        <span>Become a Seller</span>
+                    </a>
+                    <Link to="/advertise" className="flex items-center gap-2 hover:text-[#2874f0] transition-colors">
+                        <Megaphone size={16} className="text-[#FFD700]" />
+                        <span>Advertise</span>
+                    </Link>
+                    <Link to="/gift-cards" className="flex items-center gap-2 hover:text-[#2874f0] transition-colors">
+                        <Gift size={16} className="text-[#FFD700]" />
+                        <span>Gift Cards</span>
+                    </Link>
+                    <Link to="/faqs" className="flex items-center gap-2 hover:text-[#2874f0] transition-colors">
+                        <HelpCircle size={16} className="text-[#FFD700]" />
+                        <span>Help Center</span>
+                    </Link>
+                </div>
+
+                <div className="flex items-center gap-8">
+                    <p>© 2025-2026 Kottravai.com</p>
+                </div>
             </div>
 
             {/* Scroll To Top Button */}
             {showScrollTop && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-[220px] md:bottom-[160px] right-6 md:right-8 w-10 h-10 md:w-12 md:h-12 border border-gray-100 bg-white rounded-full flex items-center justify-center text-[#b5128f] shadow-2xl transition-all z-[90] hover:scale-110 active:scale-95"
+                    className="fixed bottom-24 right-8 w-12 h-12 bg-white text-[#172337] rounded-full flex items-center justify-center shadow-xl transition-all z-[90] hover:scale-110 active:scale-95 border border-gray-200"
                     aria-label="Scroll to top"
                 >
                     <ChevronUp size={24} />

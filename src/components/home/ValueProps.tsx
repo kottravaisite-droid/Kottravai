@@ -3,14 +3,14 @@ import * as Icons from 'lucide-react';
 
 const ValueProps = () => {
     return (
-        <section className="py-6 bg-white border-t border-gray-100">
+        <section className="py-8 md:py-12 bg-white border-t border-gray-100">
             <div className="container px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {valueProps.map((prop) => {
                         const Icon = (Icons[prop.icon as keyof typeof Icons] || Icons.HelpCircle) as React.ElementType;
 
                         return (
-                            <div key={prop.id} className="flex items-center p-6 border border-gray-100 rounded-lg hover:shadow-md transition-shadow">
+                            <div key={prop.id} className="flex items-center p-6 border border-gray-100 rounded-lg">
                                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary mr-5 flex-shrink-0">
                                     <Icon size={24} />
                                 </div>
