@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Search, User, ShoppingBag, ChevronDown } from 'lucide-react';
+import { Menu, X, Search, User, ShoppingBag, ChevronDown, ArrowUpRight } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import LoginModal from './LoginModal';
+import analytics from '@/utils/analyticsService';
 
 const Header = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -28,6 +29,7 @@ const Header = () => {
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
+            analytics.trackEvent('search_query', { query: searchQuery.trim() });
             navigate(`/shop?search=${encodeURIComponent(searchQuery)}`);
             setIsSearchOpen(false);
             setSearchQuery('');
@@ -76,13 +78,13 @@ const Header = () => {
     const LOGO_URL = "/uploads/2026/01/kottravai-logo-final.png";
 
     return (
-        <header className={`relative z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
+        <header className={`sticky top-0 z-50 bg-white transition-shadow duration-300 ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
+
             {/* Top Utility Bar & Logo Area */}
-            {/* Top Utility Bar & Logo Area */}
-            <div className="container py-2 md:py-4 flex justify-between items-center bg-white border-b border-gray-100 relative z-20">
+            <div className="container py-1 md:py-2 flex justify-between items-center bg-white border-b border-gray-100 relative z-20">
 
                 {/* Left: Utility Links (hidden on mobile) */}
-                <div className="hidden md:flex space-x-6 text-xs md:text-sm text-gray-500 font-medium">
+                <div className="hidden md:flex flex-1 space-x-6 text-xs md:text-sm text-gray-500 font-medium">
                     {topLinks.map(link => (
                         <Link key={link.label} to={link.path} className="hover:text-primary transition-colors">
                             {link.label}
@@ -102,7 +104,25 @@ const Header = () => {
                 </div>
 
                 {/* Right: Icons */}
-                <div className="flex items-center space-x-3 md:space-x-5 text-gray-700">
+                <div className="flex flex-1 items-center justify-end space-x-3 md:space-x-5 text-gray-700">
+                    {/* Alliance Button */}
+                    <Link
+                        to="/alliance"
+                        className="group flex items-center gap-2 px-3 md:px-4 py-1.5 md:py-2 rounded-full border border-brandPink/30 bg-brandPink/5 hover:bg-brandPink hover:border-brandPink transition-all duration-500 shadow-sm"
+                    >
+                        <div className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brandPink opacity-75 group-hover:bg-white"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-brandPink group-hover:bg-white"></span>
+                        </div>
+                        <span className="hidden sm:inline text-[9px] md:text-[10px] font-black uppercase tracking-[0.15em] text-brandPink group-hover:text-white transition-colors">
+                            Become an Alliance
+                        </span>
+                        <span className="sm:hidden text-[9px] font-black uppercase tracking-[0.15em] text-brandPink group-hover:text-white">
+                            Alliance
+                        </span>
+                        <ArrowUpRight size={14} className="text-brandPink group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                    </Link>
+
                     <button
                         className={`hover:text-primary transition-colors ${isSearchOpen ? 'text-primary' : ''}`}
                         onClick={() => setIsSearchOpen(!isSearchOpen)}
@@ -201,7 +221,7 @@ const Header = () => {
             </div>
 
             {/* Main Navigation Bar (Desktop) */}
-            < div className="hidden md:block bg-[#b5128f]" >
+            <div className="hidden md:block bg-brandPink">
                 <div className="container">
                     <nav className="flex justify-center space-x-8">
                         {mainNavLinks.map((link) => (
@@ -209,7 +229,7 @@ const Header = () => {
                                 <NavLink
                                     to={link.path}
                                     className={({ isActive }) =>
-                                        `flex items-center gap-1 text-[13px] uppercase tracking-wider font-semibold transition-colors py-4 px-2 border-b-2 border-transparent hover:text-white/90 ${isActive ? 'text-white border-white' : 'text-white'
+                                        `flex items-center gap-1 text-[13px] uppercase tracking-wider font-outfit font-medium transition-colors py-4 px-2 border-b-2 border-transparent hover:text-white/90 ${isActive ? 'text-white border-white' : 'text-white'
                                         }`
                                     }
                                 >
@@ -251,7 +271,7 @@ const Header = () => {
                 >
                     <div className="flex flex-col h-full uppercase">
                         {/* Header of drawer */}
-                        <div className="p-4 border-b flex justify-between items-center bg-[#b5128f]">
+                        <div className="p-4 border-b flex justify-between items-center bg-brandPink">
                             <img src={LOGO_URL} alt="Logo" className="h-8 brightness-0 invert" />
                             <button onClick={() => setIsOpen(false)} className="text-white p-1">
                                 <X size={24} />
@@ -346,10 +366,10 @@ const Header = () => {
                         </div>
                     </div>
                 </div>
-            </div >
+            </div>
 
             <LoginModal />
-        </header >
+        </header>
     );
 };
 

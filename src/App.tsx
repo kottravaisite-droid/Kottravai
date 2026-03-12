@@ -1,4 +1,5 @@
-import { Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Home from '@/pages/Home';
 import PageViewer from '@/pages/PageViewer';
 import BlogList from '@/pages/BlogList';
@@ -13,6 +14,7 @@ import Cart from '@/pages/Cart';
 import Checkout from '@/pages/Checkout';
 import ProductDetails from '@/pages/ProductDetails';
 import Account from '@/pages/Account';
+import OrderSuccess from '@/pages/OrderSuccess';
 import AdminDashboard from '@/pages/admin/AdminDashboard';
 import AdminLogin from '@/pages/admin/AdminLogin';
 
@@ -20,12 +22,48 @@ import ShippingPolicy from '@/pages/ShippingPolicy';
 import RefundPolicy from '@/pages/RefundPolicy';
 import TermsOfService from '@/pages/TermsOfService';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
+import Alliance from '@/pages/Alliance';
 
 import ScrollToTop from '@/components/ScrollToTop';
 
 import { Toaster } from 'react-hot-toast';
+import analytics from '@/utils/analyticsService';
 
 function App() {
+    const location = useLocation();
+    const [scrolledMilestones, setScrolledMilestones] = useState<number[]>([]);
+
+    // Track Page Views
+    useEffect(() => {
+        analytics.trackEvent('page_view', {
+            path: location.pathname,
+            search: location.search,
+            title: document.title
+        });
+        setScrolledMilestones([]); // Reset milestones on navigation
+    }, [location]);
+
+    // Track Scroll Depth
+    useEffect(() => {
+        const handleScroll = () => {
+            const h = document.documentElement,
+                b = document.body,
+                st = 'scrollTop',
+                sh = 'scrollHeight';
+            const percent = (h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight) * 100;
+
+            [25, 50, 75, 100].forEach(milestone => {
+                if (percent >= milestone && !scrolledMilestones.includes(milestone)) {
+                    setScrolledMilestones(prev => [...prev, milestone]);
+                    analytics.trackEvent('scroll_depth', { depth: `${milestone}%` });
+                }
+            });
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [scrolledMilestones]);
+
     return (
         <>
             <ScrollToTop />
@@ -37,8 +75,10 @@ function App() {
                 <Route path="/category/:slug" element={<Shop />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/order-success" element={<OrderSuccess />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/about" element={<AboutUs />} />
+                <Route path="/alliance" element={<Alliance />} />
                 <Route path="/b2b" element={<B2B />} />
                 <Route path="/faqs" element={<FAQ />} />
                 <Route path="/services" element={<PageViewer slugUri="services" />} />
@@ -51,6 +91,9 @@ function App() {
                 {/* Blog System */}
                 <Route path="/blog" element={<BlogList />} />
                 <Route path="/blog/:slug" element={<BlogDetail />} />
+
+                <Route path="/advertise" element={<PageViewer slugUri="advertise" />} />
+                <Route path="/gift-cards" element={<PageViewer slugUri="gift-cards" />} />
 
                 {/* Dynamic Page Fallback */}
                 <Route path="/:slug" element={<PageViewer />} />

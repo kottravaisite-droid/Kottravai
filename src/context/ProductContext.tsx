@@ -60,9 +60,13 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         images: p.images || [],
         reviews: p.reviews || [],
         isBestSeller: p.is_best_seller || p.isBestSeller || false,
+        isGiftBundleItem: p.is_gift_bundle_item || p.isGiftBundleItem || false,
         isCustomRequest: p.is_custom_request || p.isCustomRequest || false,
         custom_form_config: p.custom_form_config || p.customFormConfig || [],
         default_form_fields: p.default_form_fields || p.defaultFormFields || [],
+        createdAt: p.created_at || p.createdAt || new Date().toISOString(),
+        salesCount: p.sales_count || p.salesCount || 0,
+        rating: p.rating || 0,
         variants: p.variants || []
     });
 
@@ -133,7 +137,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const addProduct = async (product: Product) => {
         try {
-            const response = await axios.post(API_URL, product);
+            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+            const response = await axios.post(API_URL, product, {
+                headers: { 'X-Admin-Secret': adminPass }
+            });
             const newProduct = mapProductFromDB(response.data);
             setProducts(prev => {
                 const updated = [...prev, newProduct];
@@ -148,7 +155,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const updateProduct = async (updatedProduct: Product) => {
         try {
-            const response = await axios.put(`${API_URL}/${updatedProduct.id}`, updatedProduct);
+            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+            const response = await axios.put(`${API_URL}/${updatedProduct.id}`, updatedProduct, {
+                headers: { 'X-Admin-Secret': adminPass }
+            });
             const mappedProduct = mapProductFromDB(response.data);
 
             if (!mappedProduct.reviews && updatedProduct.reviews) {
@@ -168,7 +178,10 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const deleteProduct = async (id: string) => {
         try {
-            await axios.delete(`${API_URL}/${id}`);
+            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+            await axios.delete(`${API_URL}/${id}`, {
+                headers: { 'X-Admin-Secret': adminPass }
+            });
             setProducts(prev => {
                 const updated = prev.filter(p => p.id !== id);
                 safeSetItem('kottravai_cache_products', JSON.stringify(updated));

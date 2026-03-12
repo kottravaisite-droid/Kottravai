@@ -3,6 +3,7 @@ import { Bot, X, Send, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProducts } from '@/context/ProductContext';
 import { useCart } from '@/context/CartContext';
+import analytics from '@/utils/analyticsService';
 
 interface Message {
     id: string;
@@ -22,6 +23,12 @@ const ChatWidget = () => {
     const navigate = useNavigate();
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [isTyping, setIsTyping] = useState(false);
+
+    useEffect(() => {
+        if (isOpen) {
+            analytics.trackEvent('chat_opened');
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen && messages.length === 0) {
@@ -63,6 +70,7 @@ const ChatWidget = () => {
         setMessages(prev => [...prev, userMsg]);
         setInput('');
         processBotResponse(input);
+        analytics.trackEvent('chat_message_sent', { text: input });
     };
 
     const handleOptionClick = (value: string) => {
@@ -163,6 +171,7 @@ const ChatWidget = () => {
 
         setMessages(prev => [...prev, userMsg]);
         processBotResponse(text, value);
+        analytics.trackEvent('chat_option_selected', { option: value, text });
     };
 
     const processBotResponse = async (text: string, intentOverride?: string) => {

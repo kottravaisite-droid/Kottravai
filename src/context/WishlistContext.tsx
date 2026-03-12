@@ -3,6 +3,7 @@ import { Product } from '@/data/products';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/utils/supabaseClient';
 import axios from 'axios';
+import analytics from '@/utils/analyticsService';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -131,8 +132,10 @@ export const WishlistProvider = ({ children }: { children: ReactNode }) => {
         // Optimistic UI update
         if (exists) {
             setWishlist(prev => prev.filter(item => item.id !== product.id));
+            analytics.trackEvent('remove_from_wishlist', { product_id: product.id, product_name: product.name });
         } else {
             setWishlist(prev => [...prev, product]);
+            analytics.trackEvent('add_to_wishlist', { product_id: product.id, product_name: product.name });
         }
 
         if (isAuthenticated && user?.username) {

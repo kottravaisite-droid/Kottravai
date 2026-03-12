@@ -6,7 +6,7 @@ const JournalSection = () => {
     const { newsItems } = useNews();
 
     return (
-        <section className="py-10 bg-white">
+        <section className="pt-4 pb-12 bg-white">
             <div className="container px-4">
                 {/* Header */}
                 <div className="text-center mb-8">

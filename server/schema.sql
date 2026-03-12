@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS products (
     custom_form_config JSONB,
     default_form_fields JSONB,
     variants JSONB,
+    is_gift_bundle_item BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -70,10 +71,19 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- OTP Store
+-- OTP Store (Mobile)
 CREATE TABLE IF NOT EXISTS otps (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     mobile VARCHAR(20) NOT NULL,
+    otp VARCHAR(6) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Email OTP Store
+CREATE TABLE IF NOT EXISTS email_otps (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    email VARCHAR(255) NOT NULL,
     otp VARCHAR(6) NOT NULL,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -91,5 +101,6 @@ CREATE TABLE IF NOT EXISTS wishlist (
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_mobile ON users(mobile);
 CREATE INDEX IF NOT EXISTS idx_otps_mobile ON otps(mobile);
+CREATE INDEX IF NOT EXISTS idx_email_otps_email ON email_otps(email);
 CREATE INDEX IF NOT EXISTS idx_wishlist_username ON wishlist(username);
 

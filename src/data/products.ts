@@ -33,6 +33,7 @@ export interface Product {
     reviews?: Review[]; // Array of reviews
     stock?: number;
     isBestSeller?: boolean;
+    isGiftBundleItem?: boolean;
     isCustomRequest?: boolean;
     defaultFormFields?: Array<{
         id: string;
@@ -50,6 +51,9 @@ export interface Product {
         required?: boolean;
     }>;
     variants?: ProductVariant[];
+    createdAt?: string;
+    salesCount?: number;
+    rating?: number;
 }
 
 // Sample product to visualize changes immediately
@@ -86,6 +90,7 @@ export const products: Product[] = [
             'https://images.unsplash.com/photo-1628102491629-778571d893a3?auto=format&fit=crop&q=80&w=800',
             'https://images.unsplash.com/photo-1614737662709-64eb772d1742?auto=format&fit=crop&q=80&w=800'
         ],
+        isGiftBundleItem: true,
         reviews: []
     },
     {
@@ -143,11 +148,14 @@ export const products: Product[] = [
             'Shelf Life: 6 Months',
             'Storage: Air-tight container'
         ],
-        images: [],
+        images: [
+            'https://images.unsplash.com/photo-1589301760557-01e304b281f9?auto=format&fit=crop&q=80&w=800'
+        ],
         variants: [
             { weight: '50', price: 100 },
             { weight: '100', price: 200 }
         ],
+        isGiftBundleItem: true,
         reviews: []
     }
 ];

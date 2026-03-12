@@ -6,10 +6,11 @@ import { useReviews } from '@/context/ReviewContext';
 import { useOrders } from '../../context/OrderContext';
 import { usePartners } from '@/context/PartnerContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Image as ImageIcon, Trash2, X, Upload, Pencil, MessageSquareQuote, Package, ShoppingBag, ChevronDown, ChevronUp, LayoutDashboard, TrendingUp, DollarSign, Handshake, Video, Newspaper, Users, LogOut, Search, Bell, Activity, ArrowUpRight, ArrowDownRight, MoreVertical, Calendar, Clock, MessageCircle } from 'lucide-react';
+import { Plus, Image as ImageIcon, Trash2, X, Upload, Pencil, MessageSquareQuote, Package, ShoppingBag, ChevronDown, ChevronUp, LayoutDashboard, TrendingUp, DollarSign, Handshake, Video, Newspaper, Users, UserCheck, Phone, Instagram, Facebook, LogOut, Search, Bell, Activity, ArrowUpRight, ArrowDownRight, MoreVertical, Calendar, Clock, MessageCircle } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { categories } from '@/data/products';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 import { supabase } from '@/utils/supabaseClient';
 
 
@@ -25,7 +26,7 @@ const AdminDashboard = () => {
     const { partners, addPartner, updatePartner, deletePartner } = usePartners();
 
     const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean | null>(null);
-    const [view, setView] = useState<'dashboard' | 'list' | 'add' | 'videos' | 'news' | 'reviews' | 'stocks' | 'orders' | 'partners' | 'users' | 'whatsapp-helper'>('dashboard');
+    const [view, setView] = useState<'dashboard' | 'list' | 'add' | 'videos' | 'news' | 'reviews' | 'stocks' | 'orders' | 'partners' | 'users' | 'whatsapp-helper' | 'alliance-apps'>('dashboard');
 
     // Admin Session Guard
     useEffect(() => {
@@ -46,6 +47,13 @@ const AdminDashboard = () => {
 
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [quickEditId, setQuickEditId] = useState<string | null>(null);
+    const [quickEditForm, setQuickEditForm] = useState({
+        name: '',
+        price: '',
+        isBestSeller: false,
+        isGiftBundleItem: false
+    });
 
     // Video Form State
     const [newVideo, setNewVideo] = useState({ title: '', url: '' });
@@ -63,6 +71,26 @@ const AdminDashboard = () => {
     // Partner Form State
     const [partnerForm, setPartnerForm] = useState({ name: '', logo: '' });
     const [editingPartnerId, setEditingPartnerId] = useState<number | null>(null);
+
+    // Alliance Applications state
+    const [allianceApps, setAllianceApps] = useState<any[]>([]);
+
+    const fetchAllianceApps = async () => {
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || '/api'}/alliance`, {
+                headers: { 'Authorization': `Bearer ${sessionStorage.getItem('kottravai_admin_token')}` }
+            });
+            setAllianceApps(response.data);
+        } catch (error) {
+            console.error('Failed to fetch alliance apps:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (view === 'alliance-apps') {
+            fetchAllianceApps();
+        }
+    }, [view]);
 
     // Innovative State
     const [searchQuery, setSearchQuery] = useState('');
@@ -147,6 +175,7 @@ const AdminDashboard = () => {
 
         reviews: '',
         isBestSeller: false,
+        isGiftBundleItem: false,
         isCustomRequest: false,
         defaultFormFields: [
             { id: 'name', label: 'Name to Print', placeholder: 'Enter the name exactly as you want', type: 'text' as const, required: true, isDefault: true },
@@ -230,6 +259,13 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleDeleteProduct = (productId: string, productName: string) => {
+        if (window.confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+            deleteProduct(productId);
+            toast.success('Product deleted successfully');
+        }
+    };
+
     const handleEdit = (product: any) => {
         setEditingId(product.id);
 
@@ -248,6 +284,7 @@ const AdminDashboard = () => {
 
             reviews: '',
             isBestSeller: product.isBestSeller || false,
+            isGiftBundleItem: product.isGiftBundleItem || false,
             isCustomRequest: product.isCustomRequest || false,
             defaultFormFields: product.defaultFormFields || [
                 { id: 'name', label: 'Name to Print', placeholder: 'Enter the name exactly as you want', type: 'text' as const, required: true, isDefault: true },
@@ -263,6 +300,40 @@ const AdminDashboard = () => {
         setView('add');
     };
 
+    const handleQuickEditInit = (product: any) => {
+        setQuickEditId(product.id);
+        setQuickEditForm({
+            name: product.name,
+            price: product.price.toString(),
+            isBestSeller: product.isBestSeller || false,
+            isGiftBundleItem: product.isGiftBundleItem || false
+        });
+    };
+
+    const handleQuickUpdate = async (product: any) => {
+        setIsUploading(true);
+        const updateToast = toast.loading("Performing quick update...");
+        try {
+            const updatedProduct = {
+                ...product,
+                name: quickEditForm.name,
+                price: parseFloat(quickEditForm.price),
+                isBestSeller: quickEditForm.isBestSeller,
+                isGiftBundleItem: quickEditForm.isGiftBundleItem,
+                slug: quickEditForm.name.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+            };
+
+            await updateProduct(updatedProduct);
+            toast.success("Product updated!", { id: updateToast });
+            setQuickEditId(null);
+            fetchProducts(true);
+        } catch (error) {
+            toast.error("Failed to update product", { id: updateToast });
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             name: '',
@@ -275,6 +346,7 @@ const AdminDashboard = () => {
 
             reviews: '',
             isBestSeller: false,
+            isGiftBundleItem: false,
             isCustomRequest: false,
             defaultFormFields: [
                 { id: 'name', label: 'Name to Print', placeholder: 'Enter the name exactly as you want', type: 'text' as const, required: true, isDefault: true },
@@ -353,6 +425,7 @@ const AdminDashboard = () => {
                 features: formData.specifications.split('\n').filter(f => f.trim() !== ''),
                 reviews: existingReviews,
                 isBestSeller: formData.isBestSeller,
+                isGiftBundleItem: formData.isGiftBundleItem,
                 isCustomRequest: formData.isCustomRequest,
                 defaultFormFields: formData.defaultFormFields,
                 customFormConfig: formData.customFormConfig,
@@ -688,7 +761,8 @@ const AdminDashboard = () => {
                                 { view: 'reviews', icon: MessageSquareQuote, label: 'Feedback' },
                                 { view: 'news', icon: Newspaper, label: 'Newsroom' },
                                 { view: 'videos', icon: Video, label: 'Media Hub' },
-                                { view: 'partners', icon: Handshake, label: 'Alliances' }
+                                { view: 'partners', icon: Handshake, label: 'Alliances' },
+                                { view: 'alliance-apps', icon: UserCheck, label: 'Applications' }
                             ].map((item, idx) => (
                                 <button
                                     key={idx}
@@ -1150,7 +1224,12 @@ const AdminDashboard = () => {
                                                             <Pencil size={18} />
                                                         </button>
                                                         <button
-                                                            onClick={() => deleteVideo(video.id)}
+                                                            onClick={() => {
+                                                                if (window.confirm(`Delete video "${video.title}"?`)) {
+                                                                    deleteVideo(video.id);
+                                                                    toast.success("Video deleted");
+                                                                }
+                                                            }}
                                                             className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors"
                                                             title="Delete Video"
                                                         >
@@ -1284,7 +1363,12 @@ const AdminDashboard = () => {
                                                         <Pencil size={18} />
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteNewsItem(item.id)}
+                                                        onClick={() => {
+                                                            if (window.confirm(`Delete news item "${item.title}"?`)) {
+                                                                deleteNewsItem(item.id);
+                                                                toast.success("News item deleted");
+                                                            }
+                                                        }}
                                                         className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors"
                                                         title="Delete News"
                                                     >
@@ -1416,7 +1500,12 @@ const AdminDashboard = () => {
                                                     </div>
                                                     <div className="flex gap-2">
                                                         <button onClick={() => handleEditReview(review)} className="text-blue-500 hover:text-blue-700 p-1"><Pencil size={16} /></button>
-                                                        <button onClick={() => deleteReview(review.id)} className="text-red-500 hover:text-red-700 p-1"><Trash2 size={16} /></button>
+                                                        <button onClick={() => {
+                                                            if (window.confirm(`Delete review from "${review.name}"?`)) {
+                                                                deleteReview(review.id);
+                                                                toast.success("Review deleted");
+                                                            }
+                                                        }} className="text-red-500 hover:text-red-700 p-1"><Trash2 size={16} /></button>
                                                     </div>
                                                 </div>
                                                 <p className="text-gray-600 text-sm mt-2">{review.content}</p>
@@ -1511,7 +1600,12 @@ const AdminDashboard = () => {
 
                                             <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button onClick={() => handleEditPartner(partner)} className="bg-white text-blue-500 p-1.5 rounded-full shadow-sm hover:text-blue-700"><Pencil size={14} /></button>
-                                                <button onClick={() => deletePartner(partner.id)} className="bg-white text-red-500 p-1.5 rounded-full shadow-sm hover:text-red-700"><Trash2 size={14} /></button>
+                                                <button onClick={() => {
+                                                    if (window.confirm(`Delete partner "${partner.name}"?`)) {
+                                                        deletePartner(partner.id);
+                                                        toast.success("Partner deleted");
+                                                    }
+                                                }} className="bg-white text-red-500 p-1.5 rounded-full shadow-sm hover:text-red-700"><Trash2 size={14} /></button>
                                             </div>
                                         </div>
                                     ))}
@@ -1521,6 +1615,85 @@ const AdminDashboard = () => {
                                         </div>
                                     )}
                                 </div>
+                            </div>
+                        </div>
+                    ) : view === 'alliance-apps' ? (
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                                <h3 className="text-lg font-bold text-[#2D1B4E]">Alliance Applications</h3>
+                                <button
+                                    onClick={() => {
+                                        const token = sessionStorage.getItem('kottravai_admin_token');
+                                        window.open(`${import.meta.env.VITE_API_URL || '/api'}/alliance/export?token=${token || ''}`, '_blank');
+                                    }}
+                                    className="flex items-center gap-2 bg-[#1A1A1A] text-white px-5 py-2.5 rounded-xl font-bold text-sm hover:bg-[#8E2A8B] transition-all shadow-lg hover:shadow-[#8E2A8B]/20"
+                                >
+                                    <ImageIcon size={16} className="text-[#FFD700]" />
+                                    Export to Excel (.csv)
+                                </button>
+                            </div>
+                            <div className="overflow-x-auto border border-gray-100 rounded-xl">
+                                <table className="w-full text-left border-collapse">
+                                    <thead className="bg-gray-50 border-b border-gray-100">
+                                        <tr>
+                                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-gray-500">Applicant</th>
+                                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-gray-500">Contact</th>
+                                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-gray-500">Address</th>
+                                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-gray-500">Socials</th>
+                                            <th className="px-6 py-4 text-xs font-black uppercase tracking-widest text-gray-500">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50">
+                                        {allianceApps.map((app) => (
+                                            <tr key={app.id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-[#8E2A8B]/10 flex items-center justify-center text-[#8E2A8B] font-bold text-xs">
+                                                            {app.name.charAt(0)}
+                                                        </div>
+                                                        <span className="font-bold text-gray-900">{app.name}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                                                            <Phone size={12} className="text-[#8E2A8B]" />
+                                                            {app.phone}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 max-w-xs">
+                                                    <p className="text-xs text-gray-600 line-clamp-2">{app.address}</p>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center gap-3">
+                                                        {app.insta_id && (
+                                                            <a href={`https://instagram.com/${app.insta_id.replace('@', '')}`} target="_blank" className="text-[#E4405F] hover:scale-110 transition-transform">
+                                                                <Instagram size={16} />
+                                                            </a>
+                                                        )}
+                                                        {app.facebook_id && (
+                                                            <a href={app.facebook_id} target="_blank" className="text-[#1877F2] hover:scale-110 transition-transform">
+                                                                <Facebook size={16} />
+                                                            </a>
+                                                        )}
+                                                        {!app.insta_id && !app.facebook_id && <span className="text-gray-400 text-xs">None</span>}
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 text-xs text-gray-500 font-medium">
+                                                    {new Date(app.created_at).toLocaleDateString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        {allianceApps.length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-12 text-center text-gray-400 font-bold uppercase tracking-widest text-sm">
+                                                    No applications received yet.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     ) : view === 'add' ? (
@@ -1581,17 +1754,32 @@ const AdminDashboard = () => {
                                             ))}
                                         </select>
                                     </div>
-                                    <div className="col-span-1 md:col-span-2 flex items-center gap-3 pt-2">
-                                        <input
-                                            type="checkbox"
-                                            id="isBestSeller"
-                                            checked={formData.isBestSeller}
-                                            onChange={e => setFormData({ ...formData, isBestSeller: e.target.checked })}
-                                            className="w-5 h-5 rounded text-[#8E2A8B] focus:ring-[#8E2A8B] border-gray-300"
-                                        />
-                                        <label htmlFor="isBestSeller" className="text-sm font-bold text-gray-700 select-none cursor-pointer">
-                                            Mark as Best Seller (Show on Home Page)
-                                        </label>
+                                    <div className="col-span-1 md:col-span-2 flex items-center gap-6 pt-2">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                id="isBestSeller"
+                                                checked={formData.isBestSeller}
+                                                onChange={e => setFormData({ ...formData, isBestSeller: e.target.checked })}
+                                                className="w-5 h-5 rounded text-[#8E2A8B] focus:ring-[#8E2A8B] border-gray-300"
+                                            />
+                                            <label htmlFor="isBestSeller" className="text-sm font-bold text-gray-700 select-none cursor-pointer">
+                                                Mark as Best Seller (Show on Home Page)
+                                            </label>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                id="isGiftBundleItem"
+                                                checked={formData.isGiftBundleItem}
+                                                onChange={e => setFormData({ ...formData, isGiftBundleItem: e.target.checked })}
+                                                className="w-5 h-5 rounded text-[#8E2A8B] focus:ring-[#8E2A8B] border-gray-300"
+                                            />
+                                            <label htmlFor="isGiftBundleItem" className="text-sm font-bold text-gray-700 select-none cursor-pointer">
+                                                Add to Gift Bundle
+                                            </label>
+                                        </div>
                                     </div>
 
                                     {/* Custom Form Builder - Table View */}
@@ -2194,7 +2382,12 @@ const AdminDashboard = () => {
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
                                                     <button
-                                                        onClick={() => deleteOrder(order.id)}
+                                                        onClick={() => {
+                                                            if (window.confirm(`Delete order #${order.id.slice(0, 8)}?`)) {
+                                                                deleteOrder(order.id);
+                                                                toast.success("Order deleted");
+                                                            }
+                                                        }}
                                                         className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors"
                                                         title="Delete Order"
                                                     >
@@ -2316,36 +2509,102 @@ const AdminDashboard = () => {
                                         <th className="px-6 py-4 font-bold text-sm uppercase tracking-wider">Product</th>
                                         <th className="px-6 py-4 font-bold text-sm uppercase tracking-wider">Category</th>
                                         <th className="px-6 py-4 font-bold text-sm uppercase tracking-wider">Price</th>
-                                        <th className="px-6 py-4 font-bold text-sm uppercase tracking-wider text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {filteredProducts.map(product => (
-                                        <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
-                                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                        <tr key={product.id} className="hover:bg-gray-50 transition-all border-b border-gray-100 group">
+                                            {quickEditId === product.id ? (
+                                                <td colSpan={4} className="p-0 animate-in slide-in-from-top-2 duration-300">
+                                                    <div className="bg-blue-50/50 p-6 space-y-4 border-2 border-blue-200 rounded-xl m-2 shadow-sm">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2D1B4E]">Title</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={quickEditForm.name}
+                                                                    onChange={e => setQuickEditForm({ ...quickEditForm, name: e.target.value })}
+                                                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8E2A8B] focus:border-[#8E2A8B] outline-none bg-white"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#2D1B4E]">Amount (₹)</label>
+                                                                <input
+                                                                    type="number"
+                                                                    value={quickEditForm.price}
+                                                                    onChange={e => setQuickEditForm({ ...quickEditForm, price: e.target.value })}
+                                                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-[#8E2A8B] focus:border-[#8E2A8B] outline-none bg-white"
+                                                                />
+                                                            </div>
+                                                            <div className="flex flex-col gap-2 pt-4">
+                                                                <div className="flex items-center gap-2">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        id={`best-${product.id}`}
+                                                                        checked={quickEditForm.isBestSeller}
+                                                                        onChange={e => setQuickEditForm({ ...quickEditForm, isBestSeller: e.target.checked })}
+                                                                        className="w-4 h-4 rounded text-[#8E2A8B] focus:ring-[#8E2A8B] border-gray-300"
+                                                                    />
+                                                                    <label htmlFor={`best-${product.id}`} className="text-xs font-bold text-gray-700 cursor-pointer">Best Seller</label>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        id={`bundle-${product.id}`}
+                                                                        checked={quickEditForm.isGiftBundleItem}
+                                                                        onChange={e => setQuickEditForm({ ...quickEditForm, isGiftBundleItem: e.target.checked })}
+                                                                        className="w-4 h-4 rounded text-[#8E2A8B] focus:ring-[#8E2A8B] border-gray-300"
+                                                                    />
+                                                                    <label htmlFor={`bundle-${product.id}`} className="text-xs font-bold text-gray-700 cursor-pointer">Gift Bundle</label>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2 pt-4 justify-end">
+                                                                <button
+                                                                    onClick={() => setQuickEditId(null)}
+                                                                    className="px-4 py-2 border border-gray-300 rounded-lg text-xs font-bold hover:bg-white transition-colors"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleQuickUpdate(product)}
+                                                                    className="px-6 py-2 bg-[#2D1B4E] text-white rounded-lg text-xs font-black uppercase tracking-widest hover:bg-[#8E2A8B] transition-colors"
+                                                                >
+                                                                    Update
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <span className="font-bold text-gray-800">{product.name}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-600">
-                                                <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-600 uppercase tracking-wide">
-                                                    {product.category}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 font-bold text-[#8E2A8B]">₹{product.price}</td>
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <button onClick={() => handleEdit(product)} className="text-blue-500 hover:text-blue-700 p-2 hover:bg-blue-50 rounded-full transition-colors" title="Edit">
-                                                        <Pencil size={18} />
-                                                    </button>
-                                                    <button onClick={() => deleteProduct(product.id)} className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-full transition-colors" title="Delete">
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
-                                            </td>
+                                                </td>
+                                            ) : (
+                                                <>
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
+                                                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-bold text-gray-800">{product.name}</span>
+                                                                {/* Hover Actions */}
+                                                                <div className="flex items-center gap-3 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    <button onClick={() => handleEdit(product)} className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest">Edit</button>
+                                                                    <span className="text-gray-300 text-[10px]">|</span>
+                                                                    <button onClick={() => handleQuickEditInit(product)} className="text-[10px] font-bold text-emerald-600 hover:text-emerald-800 uppercase tracking-widest">Quick Edit</button>
+                                                                    <span className="text-gray-300 text-[10px]">|</span>
+                                                                    <button onClick={() => handleDeleteProduct(product.id, product.name)} className="text-[10px] font-bold text-red-500 hover:text-red-700 uppercase tracking-widest">Remove</button>
+                                                                    <span className="text-gray-300 text-[10px]">|</span>
+                                                                    <Link to={`/product/${product.slug}`} target="_blank" className="text-[10px] font-bold text-purple-600 hover:text-purple-800 uppercase tracking-widest">View</Link>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-600">
+                                                        <span className="bg-gray-100 px-3 py-1 rounded-full text-xs font-bold text-gray-600 uppercase tracking-wide">
+                                                            {product.category}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4 font-bold text-[#8E2A8B]">₹{product.price}</td>
+                                                </>
+                                            )}
                                         </tr>
                                     ))}
                                     {filteredProducts.length === 0 && (

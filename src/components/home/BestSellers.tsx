@@ -1,12 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useProducts } from '@/context/ProductContext';
-import { useCart } from '@/context/CartContext';
-import { ShoppingCart, Eye, Check } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import ProductCard from './ProductCard';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const BestSellers = () => {
     const { products } = useProducts();
-    const { addToCart, cart, removeFromCart } = useCart();
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
 
     // State for active tab filtering
     const [activeTab, setActiveTab] = useState('All Products');
@@ -25,11 +24,19 @@ const BestSellers = () => {
             filtered = filtered.filter(p => p.category === 'Essential Care');
         }
 
-        // Return max 4 items as requested
-        return filtered.slice(0, 4);
+        // Return max 8 items for a better grid display (up from 4)
+        return filtered.slice(0, 8);
     };
 
     const displayProducts = getFilteredProducts();
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, clientWidth } = scrollContainerRef.current;
+            const scrollTo = direction === 'left' ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+            scrollContainerRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+        }
+    };
 
     if (!products || products.length === 0) {
         return null;
@@ -38,139 +45,67 @@ const BestSellers = () => {
     // Helper to style buttons
     const getTabClass = (tabName: string) => {
         return activeTab === tabName
-            ? "text-primary border-b-2 border-primary pb-2 whitespace-nowrap font-bold"
-            : "hover:text-primary pb-2 whitespace-nowrap transition-colors";
+            ? "text-[#8E2A8B] border-b-2 border-[#8E2A8B] pb-4 uppercase tracking-[0.2em] font-black"
+            : "text-gray-400 hover:text-[#8E2A8B] pb-4 uppercase tracking-[0.2em] font-bold transition-all";
     };
 
     return (
-        <section className="py-10 bg-white">
-            <div className="container px-4">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">Best Sellers</h2>
-                    <div className="w-24 h-1 bg-primary mx-auto"></div>
+        <section className="py-8 md:py-12 bg-[#FAF9F6]">
+            <div className="container mx-auto px-4 max-w-[1240px]">
+                <div className="text-center mb-8 px-4">
+                    <p className="text-[10px] md:text-xs font-black text-[#8E2A8B] uppercase tracking-[0.5em] mb-1 opacity-70">Customer Favorites</p>
+                    <h2 className="text-3xl md:text-5xl font-black text-[#1A1A1A] mb-4 tracking-tight">Best Sellers</h2>
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex justify-center mb-6 px-4 overflow-x-auto no-scrollbar">
-                    <div className="flex space-x-4 md:space-x-8 text-sm md:text-base font-medium text-gray-500 min-w-max pb-2">
-                        <button
-                            onClick={() => setActiveTab('All Products')}
-                            className={getTabClass('All Products')}
-                        >
-                            All Products
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('Coco Crafts')}
-                            className={getTabClass('Coco Crafts')}
-                        >
-                            Coco Crafts
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('Terracotta')}
-                            className={getTabClass('Terracotta')}
-                        >
-                            Terracotta
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('Essential Care')}
-                            className={getTabClass('Essential Care')}
-                        >
-                            Essential Care
-                        </button>
+                <div className="flex justify-start md:justify-center mb-10 overflow-x-auto no-scrollbar border-b border-gray-100 px-4 md:px-0">
+                    <div className="flex space-x-8 md:space-x-16 text-xs font-bold min-w-max pb-1">
+                        <button onClick={() => setActiveTab('All Products')} className={getTabClass('All Products')}>Best Overall</button>
+                        <button onClick={() => setActiveTab('Coco Crafts')} className={getTabClass('Coco Crafts')}>Handicrafts</button>
+                        <button onClick={() => setActiveTab('Terracotta')} className={getTabClass('Terracotta')}>Terracotta</button>
+                        <button onClick={() => setActiveTab('Essential Care')} className={getTabClass('Essential Care')}>Essential Care</button>
                     </div>
                 </div>
 
-                {/* Product Grid */}
+                {/* Carousel Container */}
                 {displayProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-                        {displayProducts.map((product) => {
-                            const isInCart = cart.some(item => item.id === product.id);
-                            return (
-                                <div key={product.id} className="group relative bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300">
+                    <div className="relative group/carousel">
+                        {/* Navigation Buttons */}
+                        <button
+                            onClick={() => scroll('left')}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hover:bg-gray-50 border border-gray-100 hidden md:flex"
+                        >
+                            <ChevronLeft size={20} className="text-[#8E2A8B]" />
+                        </button>
+                        <button
+                            onClick={() => scroll('right')}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity duration-300 hover:bg-gray-50 border border-gray-100 hidden md:flex"
+                        >
+                            <ChevronRight size={20} className="text-[#8E2A8B]" />
+                        </button>
 
-                                    {/* Product Image */}
-                                    <div className="relative h-48 sm:h-64 overflow-hidden bg-gray-100">
-                                        <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                        />
-
-                                        {/* Overlay Action Buttons */}
-                                        <div className="absolute inset-0 bg-black/20 opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center space-x-2 md:space-x-4">
-                                            {/* Mobile Visibility Fix: Always show buttons on mobile */}
-                                            <div className="flex md:contents space-x-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
-                                                {product.isCustomRequest ? (
-                                                    <Link to={`/product/${product.slug}`} className="p-2 md:p-3 bg-white text-[#8E2A8B] rounded-full hover:bg-[#8E2A8B] hover:text-white transition-colors shadow-lg">
-                                                        <Eye size={18} className="md:w-5 md:h-5" />
-                                                    </Link>
-                                                ) : (
-                                                    <>
-                                                        {(product.variants && product.variants.length > 0) || Number(product.price) === 0 ? (
-                                                            <Link to={`/product/${product.slug}`} className="p-2 md:p-3 bg-white text-gray-900 rounded-full hover:bg-[#8E2A8B] hover:text-white transition-colors shadow-lg">
-                                                                <Eye size={18} className="md:w-5 md:h-5" />
-                                                            </Link>
-                                                        ) : (
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.preventDefault();
-                                                                    isInCart ? removeFromCart(product.id) : addToCart(product);
-                                                                }}
-                                                                className={`p-2 md:p-3 rounded-full shadow-lg transition-colors ${isInCart
-                                                                    ? 'bg-[#8E2A8B] text-white hover:bg-[#701a6d]'
-                                                                    : 'bg-white text-gray-900 hover:bg-[#8E2A8B] hover:text-white'
-                                                                    }`}
-                                                                title={isInCart ? "Remove from Cart" : "Add to Cart"}
-                                                            >
-                                                                {isInCart ? <Check size={18} className="md:w-5 md:h-5" /> : <ShoppingCart size={18} className="md:w-5 md:h-5" />}
-                                                            </button>
-                                                        )}
-                                                        {!((product.variants && product.variants.length > 0) || Number(product.price) === 0) && (
-                                                            <Link to={`/product/${product.slug}`} className="p-2 md:p-3 bg-white text-gray-900 rounded-full hover:bg-[#8E2A8B] hover:text-white transition-colors shadow-lg">
-                                                                <Eye size={18} className="md:w-5 md:h-5" />
-                                                            </Link>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Badge */}
-                                        <span className="absolute top-2 left-2 md:top-3 md:left-3 bg-red-500 text-white text-[10px] md:text-xs font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded">
-                                            SALE
-                                        </span>
-                                    </div>
-
-                                    {/* Product Info */}
-                                    <div className="p-3 md:p-5 text-center">
-                                        <span className="text-[10px] md:text-xs text-gray-500 uppercase tracking-wider mb-1 block">
-                                            {product.category}
-                                        </span>
-                                        <h3 className="text-sm md:text-lg font-bold text-gray-900 mb-1 md:mb-2 group-hover:text-primary transition-colors cursor-pointer truncate">
-                                            <Link to={`/product/${product.slug}`}>{product.name}</Link>
-                                        </h3>
-                                        <div className="text-secondary font-bold text-sm md:text-lg">
-                                            {product.isCustomRequest ? (
-                                                <span className="text-[10px] md:text-sm italic bg-purple-50 px-2 py-0.5 md:py-1 rounded">Price on Request</span>
-                                            ) : (product.variants && product.variants.length > 0) || Number(product.price) === 0 ? (
-                                                <span className="text-[11px] md:text-[13px] uppercase tracking-widest text-[#8E2A8B] font-black">View Price</span>
-                                            ) : (
-                                                <>₹{Number(product.price).toLocaleString('en-IN')}</>
-                                            )}
-                                        </div>
-                                    </div>
+                        <div
+                            ref={scrollContainerRef}
+                            className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory gap-4 md:gap-6 pb-8 -mx-4 px-4"
+                        >
+                            {displayProducts.map((product) => (
+                                <div key={product.id} className="flex-shrink-0 w-[280px] sm:w-[320px] lg:w-[calc(25%-18px)] snap-start flex">
+                                    <ProductCard product={product} />
                                 </div>
-                            );
-                        })}
+                            ))}
+                        </div>
                     </div>
                 ) : (
-                    <div className="text-center py-10 text-gray-500">
-                        No products found in this category.
+                    <div className="text-center py-20 bg-white rounded-[2rem] border border-dashed border-gray-200">
+                        <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">No curated selections in this category yet.</p>
                     </div>
                 )}
 
                 <div className="text-center mt-12">
-                    <a href="/shop" className="inline-block border-2 border-gray-900 text-gray-900 px-8 py-3 font-semibold rounded hover:bg-gray-900 hover:text-white transition-colors">
+                    <a
+                        href="/shop"
+                        className="inline-block px-10 py-4 border-2 border-[#1A1A1A] text-[#1A1A1A] font-bold rounded-lg hover:bg-[#1A1A1A] hover:text-white transition-all duration-300 text-sm"
+                    >
                         View All Products
                     </a>
                 </div>
