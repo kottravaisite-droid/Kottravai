@@ -3,7 +3,7 @@ const { Pool } = require('pg');
 
 let pool;
 
-if (!process.env.DATABASE_URL) {
+if (!process.env.DATABASE_URL && !process.env.VITE_DATABASE_URL) {
     console.error("❌ ERROR: DATABASE_URL environment variable is missing!");
     // Create a mock pool that fails gracefully on query
     pool = {
@@ -15,9 +15,10 @@ if (!process.env.DATABASE_URL) {
     };
 } else {
     try {
-        const isLocal = process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1');
+        const connStr = process.env.DATABASE_URL || process.env.VITE_DATABASE_URL || '';
+        const isLocal = connStr.includes('localhost') || connStr.includes('127.0.0.1');
         pool = new Pool({
-            connectionString: process.env.DATABASE_URL,
+            connectionString: process.env.DATABASE_URL || process.env.VITE_DATABASE_URL,
             ssl: { rejectUnauthorized: false }
         });
     } catch (err) {
