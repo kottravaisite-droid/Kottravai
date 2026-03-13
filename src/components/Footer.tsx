@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ChevronUp, HelpCircle, Gift, LayoutDashboard, Megaphone } from 'lucide-react';
+import { ChevronUp, HelpCircle, LayoutDashboard } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 const Footer = () => {
@@ -50,7 +50,6 @@ const Footer = () => {
                     <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">Consumer Policy</h4>
                     <ul className="space-y-2 text-[12px] font-bold">
                         <li><Link to="/terms-of-service" className="hover:underline">Terms Of Use</Link></li>
-                        <li><Link to="/security" className="hover:underline">Security</Link></li>
                         <li><Link to="/privacy-policy" className="hover:underline">Privacy</Link></li>
                     </ul>
                 </div>
@@ -60,7 +59,7 @@ const Footer = () => {
                     <h4 className="text-[#878787] text-[12px] font-medium mb-4 uppercase tracking-wider">Social</h4>
                     <ul className="space-y-2 text-[12px] font-bold">
                         <li><a href="https://www.facebook.com/profile.php?id=61582600756315" className="hover:underline">Facebook</a></li>
-                        <li><a href="https://x.com/kottravai_in" className="hover:underline">Twitter</a></li>
+                        <li><a href="https://x.com/kottravai_in" className="hover:underline">X</a></li>
                         <li><a href="https://www.youtube.com/@Kottravai_in" className="hover:underline">YouTube</a></li>
                         <li><a href="https://www.instagram.com/kottravai_in/" className="hover:underline">Instagram</a></li>
                         <li><a href="https://in.linkedin.com/company/kottravai" className="hover:underline">LinkedIn</a></li>
@@ -102,14 +101,7 @@ const Footer = () => {
                         <LayoutDashboard size={16} className="text-[#FFD700]" />
                         <span>Become an Alliance</span>
                     </Link>
-                    <Link to="/advertise" className="flex items-center gap-2 hover:text-[#2874f0] transition-colors">
-                        <Megaphone size={16} className="text-[#FFD700]" />
-                        <span>Advertise</span>
-                    </Link>
-                    <Link to="/gift-cards" className="flex items-center gap-2 hover:text-[#2874f0] transition-colors">
-                        <Gift size={16} className="text-[#FFD700]" />
-                        <span>Gift Cards</span>
-                    </Link>
+
                     <Link to="/faqs" className="flex items-center gap-2 hover:text-[#2874f0] transition-colors">
                         <HelpCircle size={16} className="text-[#FFD700]" />
                         <span>Help Center</span>
@@ -118,6 +110,7 @@ const Footer = () => {
 
                 <div className="flex items-center gap-8">
                     <p>© 2025-2026 Kottravai.com</p>
+                    <Link to="/admin/login" className="text-[10px] text-gray-600 hover:text-white transition-colors uppercase tracking-widest font-bold">Admin</Link>
                 </div>
             </div>
 

@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { Helmet } from 'react-helmet-async';
 import MainLayout from '@/layouts/MainLayout';
-import { Send, Loader2, User, Phone, MapPin, Instagram, Facebook } from 'lucide-react';
+import { Send, Loader2, User, Phone, MapPin, Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
@@ -12,7 +12,9 @@ const Alliance = () => {
         address: '',
         phone: '',
         instaId: '',
-        facebookId: ''
+        facebookId: '',
+        twitterId: '',
+        youtubeId: ''
     });
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
@@ -23,7 +25,7 @@ const Alliance = () => {
         try {
             await axios.post(`${API_URL}/alliance`, formData);
             setStatus('success');
-            setFormData({ name: '', address: '', phone: '', instaId: '', facebookId: '' });
+            setFormData({ name: '', address: '', phone: '', instaId: '', facebookId: '', twitterId: '', youtubeId: '' });
             setTimeout(() => setStatus('idle'), 5000);
         } catch (error) {
             console.error('Failed to submit application:', error);
@@ -88,7 +90,7 @@ const Alliance = () => {
                             <div className="space-y-2">
                                 <label htmlFor="address" className="flex items-center gap-2 text-sm font-bold text-gray-700">
                                     <MapPin size={16} className="text-[#8E2A8B]" />
-                                    Complete Address *
+                                    Address *
                                 </label>
                                 <textarea
                                     id="address"
@@ -135,6 +137,38 @@ const Alliance = () => {
                                             className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1877F2]/20 focus:border-[#1877F2] outline-none transition bg-gray-50/50"
                                             value={formData.facebookId}
                                             onChange={e => setFormData({ ...formData, facebookId: e.target.value })}
+                                        />
+                                    </div>
+
+                                    {/* Twitter */}
+                                    <div className="space-y-2">
+                                        <label htmlFor="twitterId" className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                                            <Twitter size={16} className="text-[#1DA1F2]" />
+                                            Twitter ID
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="twitterId"
+                                            placeholder="@yourusername"
+                                            className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1DA1F2]/20 focus:border-[#1DA1F2] outline-none transition bg-gray-50/50"
+                                            value={formData.twitterId}
+                                            onChange={e => setFormData({ ...formData, twitterId: e.target.value })}
+                                        />
+                                    </div>
+
+                                    {/* YouTube */}
+                                    <div className="space-y-2">
+                                        <label htmlFor="youtubeId" className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                                            <Youtube size={16} className="text-[#FF0000]" />
+                                            YouTube Channel Link
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="youtubeId"
+                                            placeholder="YouTube channel link"
+                                            className="w-full px-5 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF0000]/20 focus:border-[#FF0000] outline-none transition bg-gray-50/50"
+                                            value={formData.youtubeId}
+                                            onChange={e => setFormData({ ...formData, youtubeId: e.target.value })}
                                         />
                                     </div>
                                 </div>

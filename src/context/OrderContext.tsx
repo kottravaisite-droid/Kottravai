@@ -100,7 +100,10 @@ export const OrderProvider = ({ children }: { children: ReactNode }) => {
             return () => clearInterval(interval);
         } else {
             setOrders([]);
-            setAdminOrders([]);
+            // Only clear admin orders if we're not even in admin mode
+            if (sessionStorage.getItem('kottravai_admin_session') !== 'true') {
+                setAdminOrders([]);
+            }
         }
     }, [isAuthenticated, user?.email]);
 

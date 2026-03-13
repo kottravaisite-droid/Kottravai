@@ -137,9 +137,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const addProduct = async (product: Product) => {
         try {
-            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+            const adminToken = sessionStorage.getItem('kottravai_admin_token') || 'admin123';
             const response = await axios.post(API_URL, product, {
-                headers: { 'X-Admin-Secret': adminPass }
+                headers: { 'X-Admin-Secret': adminToken }
             });
             const newProduct = mapProductFromDB(response.data);
             setProducts(prev => {
@@ -155,9 +155,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const updateProduct = async (updatedProduct: Product) => {
         try {
-            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+            const adminToken = sessionStorage.getItem('kottravai_admin_token') || 'admin123';
             const response = await axios.put(`${API_URL}/${updatedProduct.id}`, updatedProduct, {
-                headers: { 'X-Admin-Secret': adminPass }
+                headers: { 'X-Admin-Secret': adminToken }
             });
             const mappedProduct = mapProductFromDB(response.data);
 
@@ -178,9 +178,9 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
 
     const deleteProduct = async (id: string) => {
         try {
-            const adminPass = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123';
+            const adminToken = sessionStorage.getItem('kottravai_admin_token') || 'admin123';
             await axios.delete(`${API_URL}/${id}`, {
-                headers: { 'X-Admin-Secret': adminPass }
+                headers: { 'X-Admin-Secret': adminToken }
             });
             setProducts(prev => {
                 const updated = prev.filter(p => p.id !== id);

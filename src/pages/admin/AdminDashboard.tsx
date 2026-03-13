@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { useProducts } from '@/context/ProductContext';
 import { useVideos } from '@/context/VideoContext';
 import { useNews } from '@/context/NewsContext';
@@ -6,7 +6,7 @@ import { useReviews } from '@/context/ReviewContext';
 import { useOrders } from '../../context/OrderContext';
 import { usePartners } from '@/context/PartnerContext';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Image as ImageIcon, Trash2, X, Upload, Pencil, MessageSquareQuote, Package, ShoppingBag, ChevronDown, ChevronUp, LayoutDashboard, TrendingUp, DollarSign, Handshake, Video, Newspaper, Users, UserCheck, Phone, Instagram, Facebook, LogOut, Search, Bell, Activity, ArrowUpRight, ArrowDownRight, MoreVertical, Calendar, Clock, MessageCircle } from 'lucide-react';
+import { Plus, Image as ImageIcon, Trash2, X, Upload, Pencil, MessageSquareQuote, Package, ShoppingBag, ChevronDown, ChevronUp, LayoutDashboard, TrendingUp, DollarSign, Handshake, Video, Newspaper, Users, UserCheck, Phone, Instagram, Facebook, Twitter, Youtube, LogOut, Search, Bell, Activity, ArrowUpRight, ArrowDownRight, MoreVertical, Calendar, Clock, MessageCircle } from 'lucide-react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
 import { categories } from '@/data/products';
 import toast from 'react-hot-toast';
@@ -158,10 +158,16 @@ const AdminDashboard = () => {
     }, []);
 
 
-    // Filter products by category slug
+    // Helper: get all descendant slugs for a given category slug (recursive)
+    const getDescendantSlugs = (slug: string): string[] => {
+        const children = categories.filter(c => c.parent === slug);
+        return [slug, ...children.flatMap(c => getDescendantSlugs(c.slug))];
+    };
+
+    // Filter products by category slug (includes all nested sub-categories)
     const filteredProducts = selectedCategory === 'all'
         ? products
-        : products.filter(p => p.categorySlug === selectedCategory);
+        : products.filter(p => p.categorySlug && getDescendantSlugs(selectedCategory).includes(p.categorySlug));
 
     // Form State
     const [formData, setFormData] = useState({
@@ -208,23 +214,27 @@ const AdminDashboard = () => {
         });
     };
 
-    // Generic Upload Helper for Supabase
+    // Generic Upload Helper Proxy (Bypasses Storage RLS)
     const uploadToSupabase = async (file: File, folder: string): Promise<string> => {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
-        const filePath = `${folder}/${fileName}`;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('folder', folder);
 
-        const { data, error } = await supabase.storage
-            .from('products')
-            .upload(filePath, file);
+        const adminSecret = sessionStorage.getItem('kottravai_admin_token') || 'admin123';
+        
+        try {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL || '/api'}/storage/upload`, formData, {
+                headers: { 
+                    'Content-Type': 'multipart/form-data',
+                    'X-Admin-Secret': adminSecret
+                }
+            });
 
-        if (error) throw error;
-
-        const { data: { publicUrl } } = supabase.storage
-            .from('products')
-            .getPublicUrl(data.path);
-
-        return publicUrl;
+            return response.data.publicUrl;
+        } catch (error: any) {
+            console.error('❌ Upload Proxy Failed:', error);
+            throw new Error(error.response?.data?.error || 'Failed to upload image via proxy');
+        }
     };
 
     // File Handlers
@@ -1677,7 +1687,17 @@ const AdminDashboard = () => {
                                                                 <Facebook size={16} />
                                                             </a>
                                                         )}
-                                                        {!app.insta_id && !app.facebook_id && <span className="text-gray-400 text-xs">None</span>}
+                                                        {app.twitter_id && (
+                                                            <a href={app.twitter_id.startsWith('http') ? app.twitter_id : `https://twitter.com/${app.twitter_id.replace('@', '')}`} target="_blank" className="text-[#1DA1F2] hover:scale-110 transition-transform">
+                                                                <Twitter size={16} />
+                                                            </a>
+                                                        )}
+                                                        {app.youtube_id && (
+                                                            <a href={app.youtube_id} target="_blank" className="text-[#FF0000] hover:scale-110 transition-transform">
+                                                                <Youtube size={16} />
+                                                            </a>
+                                                        )}
+                                                        {!app.insta_id && !app.facebook_id && !app.twitter_id && !app.youtube_id && <span className="text-gray-400 text-xs">None</span>}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 text-xs text-gray-500 font-medium">
@@ -1741,17 +1761,29 @@ const AdminDashboard = () => {
                                         <select
                                             value={formData.category}
                                             onChange={e => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8E2A8B] focus:border-[#8E2A8B] outline-none transition-all bg-white"
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-[#8E2A8B] focus:border-[#8E2A8B] outline-none transition-all bg-white text-sm font-medium"
                                         >
                                             <option value="" disabled>Select a category</option>
-                                            {categories.filter(c => !c.parent).map(parent => (
-                                                <optgroup key={parent.slug} label={parent.name}>
-                                                    <option value={parent.slug}>--- General {parent.name} ---</option>
-                                                    {categories.filter(c => c.parent === parent.slug).map(sub => (
-                                                        <option key={sub.slug} value={sub.slug}>{sub.name}</option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
+                                            {categories.filter(c => !c.parent).map(topCat => {
+                                                const renderOptions = (parentSlug: string, level: number = 0) => {
+                                                    const children = categories.filter(c => c.parent === parentSlug);
+                                                    return children.map(child => (
+                                                        <Fragment key={child.slug}>
+                                                            <option value={child.slug}>
+                                                                {'\u00A0'.repeat(level * 4)}{level > 0 ? '↳ ' : ''}{child.name}
+                                                            </option>
+                                                            {renderOptions(child.slug, level + 1)}
+                                                        </Fragment>
+                                                    ));
+                                                };
+
+                                                return (
+                                                    <optgroup key={topCat.slug} label={topCat.name.toUpperCase()}>
+                                                        <option value={topCat.slug}>General {topCat.name}</option>
+                                                        {renderOptions(topCat.slug, 1)}
+                                                    </optgroup>
+                                                );
+                                            })}
                                         </select>
                                     </div>
                                     <div className="col-span-1 md:col-span-2 flex items-center gap-6 pt-2">
@@ -2053,12 +2085,22 @@ const AdminDashboard = () => {
                                                                     onChange={async (e) => {
                                                                         const files = e.target.files;
                                                                         if (files) {
-                                                                            Array.from(files).forEach(async (file) => {
-                                                                                const base64 = await convertToBase64(file);
+                                                                            setIsUploading(true);
+                                                                            const loadToast = toast.loading("Uploading variant images...");
+                                                                            try {
+                                                                                const uploadedUrls = await Promise.all(
+                                                                                    Array.from(files).map(file => uploadToSupabase(file, 'variants'))
+                                                                                );
+                                                                                
                                                                                 const newVariants = [...formData.variants];
-                                                                                newVariants[index].images = [...(newVariants[index].images || []), base64];
+                                                                                newVariants[index].images = [...(newVariants[index].images || []), ...uploadedUrls];
                                                                                 setFormData({ ...formData, variants: newVariants });
-                                                                            });
+                                                                                toast.success("Images uploaded", { id: loadToast });
+                                                                            } catch (err: any) {
+                                                                                toast.error("Upload failed: " + err.message, { id: loadToast });
+                                                                            } finally {
+                                                                                setIsUploading(false);
+                                                                            }
                                                                         }
                                                                     }}
                                                                 />
@@ -2493,14 +2535,27 @@ const AdminDashboard = () => {
                                     className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-[#8E2A8B] focus:border-[#8E2A8B] outline-none"
                                 >
                                     <option value="all">All Categories</option>
-                                    {categories.filter(c => !c.parent).map(parent => (
-                                        <optgroup key={parent.slug} label={parent.name}>
-                                            <option value={parent.slug}>--- General {parent.name} ---</option>
-                                            {categories.filter(c => c.parent === parent.slug).map(sub => (
-                                                <option key={sub.slug} value={sub.slug}>{sub.name}</option>
-                                            ))}
-                                        </optgroup>
-                                    ))}
+                                    {categories.filter(c => !c.parent).map(parent => {
+                                        // Recursive renderer for nested sub-categories
+                                        const renderSubOptions = (parentSlug: string, depth: number = 0): React.ReactNode => {
+                                            return categories
+                                                .filter(c => c.parent === parentSlug)
+                                                .map(sub => (
+                                                    <Fragment key={sub.slug}>
+                                                        <option value={sub.slug}>
+                                                            {'\u00A0'.repeat(depth * 4)}{depth > 0 ? '↳ ' : ''}{sub.name}
+                                                        </option>
+                                                        {renderSubOptions(sub.slug, depth + 1)}
+                                                    </Fragment>
+                                                ));
+                                        };
+                                        return (
+                                            <optgroup key={parent.slug} label={parent.name}>
+                                                <option value={parent.slug}>--- General {parent.name} ---</option>
+                                                {renderSubOptions(parent.slug)}
+                                            </optgroup>
+                                        );
+                                    })}
                                 </select>
                             </div>
                             <table className="w-full text-left">

@@ -157,6 +157,78 @@ export const products: Product[] = [
         ],
         isGiftBundleItem: true,
         reviews: []
+    },
+    {
+        id: '4',
+        name: 'Vibrant Festival Terracotta Earrings',
+        price: 599,
+        category: 'Festival Wear',
+        categorySlug: 'festival-wear',
+        image: 'https://images.unsplash.com/photo-1635767798638-3e25273a8236?auto=format&fit=crop&q=80&w=800',
+        slug: 'vibrant-festival-terracotta-earrings',
+        shortDescription: 'Colorful and intricately designed terracotta earrings perfect for festive occasions.',
+        description: 'Elevate your festive attire with our Vibrant Festival Terracotta Earrings. Hand-painted with eco-friendly acrylics and featuring intricate traditional motifs, these lightweight earrings are designed to provide comfort throughout long celebrations while making a bold statement.',
+        keyFeatures: [
+            'Hand-painted traditional designs',
+            'Lightweight and comfortable for long wear',
+            'Made from superior quality clay',
+            'Hypoallergenic hooks'
+        ],
+        features: [
+            'Material: Hand-baked Terracotta Clay',
+            'Weight: 20g per pair',
+            'Occasion: Festival & Traditional Wear'
+        ],
+        images: [],
+        reviews: []
+    },
+    {
+        id: '5',
+        name: 'Royal Heritage Bridal Terracotta Set',
+        price: 2499,
+        category: 'Bridal Set',
+        categorySlug: 'bridal-set',
+        image: 'https://images.unsplash.com/photo-1617033935328-fd23296de14a?auto=format&fit=crop&q=80&w=800',
+        slug: 'royal-heritage-bridal-terracotta-set',
+        shortDescription: 'A complete, majestic terracotta jewelry set meticulously crafted for the modern bride looking for a traditional touch.',
+        description: 'Our Royal Heritage Bridal Terracotta Set is a masterpiece of craftsmanship. Including a heavy necklace, matching jhumkas, and bangles, this set is adorned with traditional temple patterns. Each piece is carefully baked and finished to a smooth, elegant texture, offering a unique and sustainable alternative for your big day.',
+        keyFeatures: [
+            'Full set: Necklace, Jhumkas, and Bangles',
+            'Intricate temple jewelry motifs',
+            'Durable and sturdier than regular terracotta',
+            'Adjustable necklace length'
+        ],
+        features: [
+            'Set Includes: 1 Necklace, 2 Earrings, 2 Bangles',
+            'Material: High-fired Terracotta',
+            'Finish: Matte Antique Finish'
+        ],
+        images: [],
+        reviews: []
+    },
+    {
+        id: '6',
+        name: 'Minimalist Daily Wear Terracotta Studs',
+        price: 299,
+        category: 'Daily Wear',
+        categorySlug: 'daily-wear',
+        image: 'https://images.unsplash.com/photo-1543290954-bd6da8bb6648?auto=format&fit=crop&q=80&w=800',
+        slug: 'minimalist-daily-wear-terracotta-studs',
+        shortDescription: 'Elegant and simple terracotta studs for a subtle, earthy addition to your everyday wardrobe.',
+        description: 'Perfect for work or casual outings, these Minimalist Daily Wear Terracotta Studs offer an understated elegance. Crafted in versatile neutral tones, they represent the perfect blend of modern minimalism and traditional craft. Their lightweight nature makes them ideal for daily use.',
+        keyFeatures: [
+            'Simple geometric designs',
+            'Extremely lightweight',
+            'Natural earthy colors',
+            'Water-resistant finish'
+        ],
+        features: [
+            'Diameter: 1.5 cm',
+            'Material: Natural Clay',
+            'Backing: Stainless Steel Studs'
+        ],
+        images: [],
+        reviews: []
     }
 ];
 
@@ -171,6 +243,9 @@ export const categories = [
     // --- Sub Categories: Handicrafts ---
     { name: 'Coco Crafts', count: 0, slug: 'coco-crafts', parent: 'handicrafts' },
     { name: 'Terracotta Ornaments', count: 0, slug: 'terracotta-ornaments', parent: 'handicrafts' },
+    { name: 'Festival Wear', count: 0, slug: 'festival-wear', parent: 'terracotta-ornaments' },
+    { name: 'Bridal Set', count: 0, slug: 'bridal-set', parent: 'terracotta-ornaments' },
+    { name: 'Daily Wear', count: 0, slug: 'daily-wear', parent: 'terracotta-ornaments' },
     { name: 'Banana Fibre Essentials', count: 0, slug: 'banana-fibre-essentials', parent: 'handicrafts' },
     { name: 'Handwoven Crochet', count: 0, slug: 'handwoven-crochet', parent: 'handicrafts' },
 

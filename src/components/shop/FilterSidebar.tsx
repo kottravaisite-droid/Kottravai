@@ -69,13 +69,13 @@ const FilterSidebar = ({
                     </div>
 
                     {/* Clear All Button */}
-                    {(slug || priceRange[0] !== 50 || priceRange[1] !== 1000 || searchQuery) && (
+                    {(slug || priceRange[0] !== 0 || priceRange[1] !== 3000 || searchQuery) && (
                         <div className="mb-6">
                             <Link
                                 to="/shop"
                                 className="block w-full py-3 rounded-xl border border-[#b5128f]/20 text-center text-xs font-black uppercase tracking-widest text-[#b5128f] hover:bg-[#b5128f]/5 transition-colors"
                                 onClick={() => {
-                                    setPriceRange([50, 1000]);
+                                    setPriceRange([0, 3000]);
                                     setExpandedCategory(null);
                                     onClose();
                                 }}
@@ -94,6 +94,7 @@ const FilterSidebar = ({
                                     className={`flex justify-between items-center p-3 rounded-xl transition-all duration-300 ${!slug ? 'bg-[#b5128f]/10 text-[#b5128f]' : 'text-[#2D1B4E] hover:bg-gray-50'}`}
                                     onClick={() => {
                                         setExpandedCategory(null);
+                                        analytics.trackEvent('filter_used', { type: 'category', value: 'all' });
                                         onClose();
                                     }}
                                 >
@@ -109,74 +110,16 @@ const FilterSidebar = ({
                                 </Link>
                             </li>
 
-                            {categories.filter(c => !c.parent).map((parent) => {
-                                const isExpanded = expandedCategory === parent.slug;
-                                const isActive = slug === parent.slug;
-                                const hasChildren = categories.some(c => c.parent === parent.slug);
-                                const parentCount = categoryCounts[`p-${parent.slug}`] || 0;
-
-                                return (
-                                    <div key={parent.slug} className="pt-1">
-                                        <div className="group/parent flex items-center">
-                                            <Link
-                                                to={`/category/${parent.slug}`}
-                                                className={`flex items-center justify-between flex-1 p-3 rounded-xl transition-all duration-300 ${isActive ? 'bg-[#b5128f]/10 text-[#b5128f]' : 'text-[#2D1B4E] hover:bg-gray-50'}`}
-                                                onClick={() => {
-                                                    analytics.trackEvent('filter_used', { type: 'category', value: parent.slug });
-                                                    if (hasChildren) {
-                                                        setExpandedCategory(parent.slug === expandedCategory ? null : parent.slug);
-                                                    } else {
-                                                        onClose();
-                                                    }
-                                                }}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <span className={`font-bold text-sm ${isActive ? 'text-[#b5128f]' : 'text-gray-700'}`}>{parent.name}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isActive ? 'bg-[#b5128f] text-white' : 'bg-gray-100 text-gray-400'}`}>
-                                                        {parentCount}
-                                                    </span>
-                                                    {hasChildren && (
-                                                        <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
-                                                            <ChevronDown size={14} className={isActive ? 'text-[#b5128f]' : 'text-gray-400'} />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </Link>
-                                        </div>
-
-                                        {/* Subcategories Accordion */}
-                                        <div className={`mt-1 overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[500px] opacity-100 translate-y-0' : 'max-h-0 opacity-0 -translate-y-2 pointer-events-none'}`}>
-                                            <ul className="pl-6 space-y-1 relative before:content-[''] before:absolute before:left-3 before:top-2 before:bottom-3 before:w-0.5 before:bg-gray-100 before:rounded-full">
-                                                {categories.filter(c => c.parent === parent.slug).map(child => {
-                                                    const isChildActive = slug === child.slug;
-                                                    return (
-                                                        <li key={child.slug}>
-                                                            <Link
-                                                                to={`/category/${child.slug}`}
-                                                                className={`group/child flex justify-between items-center p-2 rounded-lg text-xs transition-colors ${isChildActive ? 'text-[#b5128f] font-bold bg-[#b5128f]/5' : 'text-gray-500 hover:text-[#b5128f] hover:bg-gray-50'}`}
-                                                                onClick={() => {
-                                                                    analytics.trackEvent('filter_used', { type: 'subcategory', value: child.slug });
-                                                                    onClose();
-                                                                }}
-                                                            >
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className={`w-1 h-1 rounded-full transition-all ${isChildActive ? 'bg-[#b5128f] scale-150' : 'bg-gray-300 group-hover/child:bg-[#b5128f]'}`}></div>
-                                                                    <span>{child.name}</span>
-                                                                </div>
-                                                                <span className={`text-[9px] font-medium ${isChildActive ? 'text-[#b5128f]' : 'text-gray-400'}`}>
-                                                                    {categoryCounts[child.slug] || 0}
-                                                                </span>
-                                                            </Link>
-                                                        </li>
-                                                    );
-                                                })}
-                                            </ul>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {/* Recursive Category Rendering */}
+                            <CategoryTree 
+                                categories={categories} 
+                                parentSlug={null} 
+                                currentSlug={slug} 
+                                counts={categoryCounts} 
+                                expandedCategory={expandedCategory} 
+                                setExpandedCategory={setExpandedCategory} 
+                                onClose={onClose} 
+                            />
                         </ul>
                     </div>
 
@@ -187,7 +130,7 @@ const FilterSidebar = ({
                             <div className="relative pt-6 pb-2">
                                 <input
                                     type="range"
-                                    min="50" max="1000"
+                                    min="0" max="3000"
                                     step="10"
                                     value={priceRange[1]}
                                     onChange={(e) => {
@@ -225,6 +168,91 @@ const FilterSidebar = ({
                 </div>
             </div>
         </>
+    );
+};
+
+// Recursive Category Component
+const CategoryTree = ({ 
+    categories, 
+    parentSlug, 
+    currentSlug, 
+    counts, 
+    expandedCategory, 
+    setExpandedCategory, 
+    onClose,
+    level = 0
+}: { 
+    categories: any[], 
+    parentSlug: string | null, 
+    currentSlug: string | undefined, 
+    counts: Record<string, number>, 
+    expandedCategory: string | null, 
+    setExpandedCategory: (s: string | null) => void, 
+    onClose: () => void,
+    level?: number
+}) => {
+    const parentCats = categories.filter(c => (parentSlug === null ? !c.parent : c.parent === parentSlug));
+    
+    if (parentCats.length === 0) return null;
+
+    return (
+        <div className={level > 0 ? `pl-4 mt-1 border-l border-gray-100 ml-1` : "space-y-1"}>
+            {parentCats.map((cat) => {
+                const isExpanded = expandedCategory === cat.slug;
+                const isActive = currentSlug === cat.slug;
+                const children = categories.filter(c => c.parent === cat.slug);
+                const hasChildren = children.length > 0;
+                const count = (counts[`p-${cat.slug}`] !== undefined) ? counts[`p-${cat.slug}`] : (counts[cat.slug] || 0);
+
+                return (
+                    <div key={cat.slug} className="pt-1">
+                        <div className="group flex items-center">
+                            <Link
+                                to={`/category/${cat.slug}`}
+                                className={`flex items-center justify-between flex-1 p-2.5 rounded-xl transition-all duration-300 ${isActive ? 'bg-[#b5128f]/10 text-[#b5128f]' : 'text-gray-700 hover:bg-gray-50'}`}
+                                onClick={() => {
+                                    analytics.trackEvent('filter_used', { type: level === 0 ? 'category' : 'subcategory', value: cat.slug });
+                                    if (hasChildren && level === 0) {
+                                        setExpandedCategory(cat.slug === expandedCategory ? null : cat.slug);
+                                    } else {
+                                        onClose();
+                                    }
+                                }}
+                            >
+                                <div className="flex items-center gap-2">
+                                    {level > 0 && <div className={`w-1 h-1 rounded-full ${isActive ? 'bg-[#b5128f]' : 'bg-gray-300'}`}></div>}
+                                    <span className={`${level === 0 ? 'font-bold text-sm' : 'text-xs'} ${isActive ? 'text-[#b5128f]' : 'text-gray-600'}`}>{cat.name}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${isActive ? 'bg-[#b5128f] text-white' : 'bg-gray-100 text-gray-400'}`}>
+                                        {count}
+                                    </span>
+                                    {hasChildren && level === 0 && (
+                                        <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                                            <ChevronDown size={14} className={isActive ? 'text-[#b5128f]' : 'text-gray-400'} />
+                                        </div>
+                                    )}
+                                </div>
+                            </Link>
+                        </div>
+
+                        {/* Recursive Children */}
+                        {hasChildren && (level === 0 ? isExpanded : true) && (
+                            <CategoryTree 
+                                categories={categories} 
+                                parentSlug={cat.slug} 
+                                currentSlug={currentSlug} 
+                                counts={counts} 
+                                expandedCategory={expandedCategory} 
+                                setExpandedCategory={setExpandedCategory} 
+                                onClose={onClose} 
+                                level={level + 1}
+                            />
+                        )}
+                    </div>
+                );
+            })}
+        </div>
     );
 };
 

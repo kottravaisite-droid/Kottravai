@@ -23,7 +23,7 @@ const Shop = () => {
     const ITEMS_PER_PAGE = 12;
 
     // Default price range 50 - 1000
-    const [priceRange, setPriceRange] = useState<[number, number]>([50, 1000]);
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 3000]);
     const [sortBy, setSortBy] = useState('default');
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -33,7 +33,7 @@ const Shop = () => {
     const categoryCounts = useMemo(() => {
         const counts: Record<string, number> = {};
 
-        // Exact match counts for each sub-category or primary category
+        // 1. Initial counts for each specific sub-category
         products.forEach(product => {
             const catSlug = product.categorySlug;
             if (catSlug) {
@@ -41,14 +41,26 @@ const Shop = () => {
             }
         });
 
-        // Sum up counts for parent categories (Sum of children)
-        categories.filter(c => !c.parent).forEach(parent => {
-            let total = counts[parent.slug] || 0;
-            const children = categories.filter(c => c.parent === parent.slug);
+        // 2. Recursive summing function
+        const sumRecursive = (slug: string): number => {
+            let total = counts[slug] || 0;
+            const children = categories.filter(c => c.parent === slug);
             children.forEach(child => {
-                total += counts[child.slug] || 0;
+                total += sumRecursive(child.slug);
             });
-            counts[`p-${parent.slug}`] = total;
+            // We use different keys for "full sum" to avoid multiple summations
+            counts[`p-${slug}`] = total; 
+            return total;
+        };
+
+        // 3. Process all top-level parents
+        categories.filter(c => !c.parent).forEach(parent => {
+            sumRecursive(parent.slug);
+        });
+
+        // 4. Also process intermediate levels (like terracotta-ornaments)
+        categories.filter(c => c.parent).forEach(inter => {
+            sumRecursive(inter.slug);
         });
 
         return counts;
@@ -79,6 +91,19 @@ const Shop = () => {
         pageTitle = currentCategory.name;
     }
 
+    // Category Filtering Pre-computation
+    const validSlugs = useMemo(() => {
+        if (!slug) return [];
+        const getAncestry = (currentSlug: string): string[] => {
+            const results = [currentSlug];
+            categories.filter(c => c.parent === currentSlug).forEach(child => {
+                results.push(...getAncestry(child.slug));
+            });
+            return results;
+        };
+        return getAncestry(slug);
+    }, [slug, categories]);
+
     // Filter Logic
     const filteredProducts = products.filter(product => {
         // Price Filter
@@ -97,17 +122,12 @@ const Shop = () => {
 
         // Category Filter
         if (slug) {
-            const validSlugs = [slug]; // Always include itself
-
-            // Add children if this is a parent category
-            categories.filter(c => c.parent === slug).forEach(c => validSlugs.push(c.slug));
-
             // Check using categorySlug property if available (Robust)
             if (product.categorySlug) {
                 return validSlugs.includes(product.categorySlug);
             }
 
-            // Fallback: Use Name matching (Legacy/Fragile)
+            // Fallback: Use Name matching
             const relevantCategoryNames = categories
                 .filter(c => validSlugs.includes(c.slug))
                 .map(c => c.name);

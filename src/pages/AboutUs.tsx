@@ -10,6 +10,7 @@ const TeamSlider = () => {
     const totalCards = teamMembers.length;
 
     useEffect(() => {
+
         const handleResize = () => {
             if (window.innerWidth < 640) setVisibleCards(1);
             else if (window.innerWidth < 1024) setVisibleCards(2);
@@ -204,10 +205,9 @@ const AboutUs = () => {
                                 </h2>
 
                                 <p className="text-lg text-gray-600 leading-relaxed max-w-2xl">
-                                    Kottravai is a women-led platform creating eco-friendly handmade products
-                                    while enabling rural women artisans to earn sustainable, independent incomes.
-                                    We believe economic dignity strengthens families, preserves traditions,
-                                    and builds resilient communities.
+                                    Kottravai is a women-led platform that creates eco-friendly handmade products while empowering women who were previously engaged in beedi rolling to earn sustainable
+                                    and independent incomes. Our mission is to help them move away from hazardous working conditions and build healthier livelihoods.
+                                    We believe that economic dignity strengthens families, preserves traditional skills, and helps build resilient communities.
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row gap-8 pt-4">
@@ -242,7 +242,7 @@ const AboutUs = () => {
                         {/* Impact Strip */}
                         <div className="relative bg-[#2D1B4E] rounded-2xl p-10 shadow-xl flex flex-col md:flex-row justify-around items-center gap-8 text-center max-w-5xl mx-auto">
                             <div className="flex flex-col items-center">
-                                <strong className="text-5xl font-black text-[#FFD700] mb-1">50+</strong>
+                                <strong className="text-5xl font-black text-[#FFD700] mb-1">35+</strong>
                                 <span className="text-white/90 font-bold uppercase tracking-widest text-xs">Women Artisans</span>
                             </div>
                             <div className="hidden md:block w-px h-12 bg-white/20"></div>
@@ -252,8 +252,8 @@ const AboutUs = () => {
                             </div>
                             <div className="hidden md:block w-px h-12 bg-white/20"></div>
                             <div className="flex flex-col items-center">
-                                <strong className="text-5xl font-black text-[#FFD700] mb-1">0%</strong>
-                                <span className="text-white/90 font-bold uppercase tracking-widest text-xs">Plastic Materials</span>
+                                <strong className="text-5xl font-black text-[#FFD700] mb-1">90+</strong>
+                                <span className="text-white/90 font-bold uppercase tracking-widest text-xs">Products</span>
                             </div>
                         </div>
                     </div>
@@ -285,7 +285,7 @@ const AboutUs = () => {
                                 {
                                     title: "Women Empowered",
                                     desc: "Rural women transition from hazardous Beedi work into safe, skilled, and dignified livelihoods.",
-                                    image: "https://images.unsplash.com/photo-1605000797499-95a51c5269ae?q=80&w=1000&auto=format&fit=crop",
+                                    image: "/women_empowerment.jpg",
                                     bgColor: "#F8F0FF"
                                 },
                                 {
@@ -312,17 +312,17 @@ const AboutUs = () => {
                                     className="group relative bg-white rounded-2xl p-8 shadow-[0_10px_40px_rgba(0,0,0,0.02)] border border-white hover:border-[#8E2A8B]/30 hover:shadow-[0_40px_80px_rgba(142,42,139,0.15)] transition-all duration-700 flex flex-col items-center text-center overflow-hidden"
                                 >
                                     {/* Shorter Image Background Wrapper */}
-                                    <div className="absolute inset-0 h-44 overflow-hidden" style={{ backgroundColor: item.bgColor }}>
+                                    <div className="absolute inset-0 h-56 overflow-hidden" style={{ backgroundColor: item.bgColor }}>
                                         <img
                                             src={item.image}
                                             alt=""
-                                            className="w-full h-full object-cover transition-all duration-1000 group-hover:scale-110"
+                                            className="w-full h-full object-cover opacity-80 transition-all duration-1000 group-hover:scale-110"
                                             onError={(e) => (e.currentTarget.style.display = 'none')}
                                         />
                                         <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-white/80 to-white"></div>
                                     </div>
 
-                                    <div className="relative z-10 pt-32 pb-4 flex flex-col items-center">
+                                    <div className="relative z-10 pt-44 pb-4 flex flex-col items-center">
                                         <h3 className="text-xl font-black text-[#2D1B4E] mb-3 tracking-tight group-hover:text-[#8E2A8B] transition-colors duration-500">
                                             {item.title}
                                         </h3>
@@ -410,23 +410,23 @@ const AboutUs = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
                             {[
                                 {
-                                    name: "Coconut shell hub",
-                                    location: "Thenkasi, Tamil Nadu",
-                                    desc: "Specializing in palm leaf weaving and natural fiber crafts.",
-                                    image: "https://images.unsplash.com/photo-1596392927852-2a18c336fb78?q=80&w=800&auto=format&fit=crop",
-                                    link: "#"
+                                    name: "Coconut Shell Hub",
+                                    location: "Mathalamparai, Tamil Nadu",
+                                    desc: "Hub creates eco-friendly coconut shell crafts and sustainable handmade products from natural coconut shells.",
+                                    image: "/tenkasi_hub.jpg",
+                                    link: "https://www.google.com/maps/place/Kottravai+Coconut+shell+Hub/@8.9120647,77.3283595,17z/data=!3m1!4b1!4m6!3m5!1s0x3b04296f48133015:0x80520f72a6db9382!8m2!3d8.9120594!4d77.3309344!16s%2Fg%2F11ynb__x7l?entry=ttu&g_ep=EgoyMDI2MDMwOS4wIKXMDSoASAFQAw%3D%3D"
                                 },
                                 {
-                                    name: "Teracotta jwellery hub",
-                                    location: "Madurai, Tamil Nadu",
-                                    desc: "The heart of our traditional textile and cotton weaving operations.",
-                                    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800&auto=format&fit=crop",
-                                    link: "#"
+                                    name: "Teracotta Hub",
+                                    location: "Surandai, Tamil Nadu",
+                                    desc: "Hub creates artistic terracotta jewelry and sustainable handmade products from natural earthen clay.",
+                                    image: "/teracotta_hub.jpg",
+                                    link: "https://www.google.com/maps/place/8%C2%B058'03.5%22N+77%C2%B026'08.6%22E/@8.9676823,77.435197,18.85z/data=!4m4!3m3!8m2!3d8.9676267!4d77.4357233?hl=en&entry=ttu&g_ep=EgoyMDI2MDMwOS4wIKXMDSoASAFQAw%3D%3D"
                                 },
                                 {
                                     name: "Banana fiber hub",
-                                    location: "Coimbatore, Tamil Nadu",
-                                    desc: "Focused on eco-friendly packaging and sustainable materials.",
+                                    location: "Sankarankovil, Tamil Nadu",
+                                    desc: "Hub creates eco-friendly banana fiber crafts and sustainable handmade products from natural banana fibers.",
                                     image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?q=80&w=800&auto=format&fit=crop",
                                     link: "#"
                                 },
@@ -451,15 +451,27 @@ const AboutUs = () => {
                                     </div>
 
                                     {/* Hub Name */}
-                                    <h3 className="text-[17px] font-bold text-[#2D1B4E] mb-1.5 leading-snug group-hover:text-[#8E2A8B] transition-colors duration-300">
-                                        {hub.name}
-                                    </h3>
+                                    <a
+                                        href={hub.link}
+                                        target={hub.link.startsWith('http') ? "_blank" : "_self"}
+                                        rel={hub.link.startsWith('http') ? "noopener noreferrer" : ""}
+                                        className="block group-hover:text-[#8E2A8B] transition-colors duration-300"
+                                    >
+                                        <h3 className="text-[17px] font-bold text-[#2D1B4E] mb-1.5 leading-snug">
+                                            {hub.name}
+                                        </h3>
+                                    </a>
 
                                     {/* Location */}
-                                    <div className="flex items-center gap-1.5 mb-3">
+                                    <a
+                                        href={hub.link}
+                                        target={hub.link.startsWith('http') ? "_blank" : "_self"}
+                                        rel={hub.link.startsWith('http') ? "noopener noreferrer" : ""}
+                                        className="flex items-center gap-1.5 mb-3 hover:opacity-80 transition-opacity"
+                                    >
                                         <MapPin size={12} className="text-[#8E2A8B] shrink-0" />
                                         <span className="text-[#8E2A8B] text-[12px] font-semibold">{hub.location}</span>
-                                    </div>
+                                    </a>
 
                                     {/* Description */}
                                     <p className="text-gray-500 text-[14px] leading-relaxed mb-4 flex-grow">
@@ -469,6 +481,8 @@ const AboutUs = () => {
                                     {/* View Hub → underline link */}
                                     <a
                                         href={hub.link}
+                                        target={hub.link.startsWith('http') ? "_blank" : "_self"}
+                                        rel={hub.link.startsWith('http') ? "noopener noreferrer" : ""}
                                         className="group/link inline-flex items-center gap-1.5 text-[#2D1B4E] font-semibold text-[14px] underline underline-offset-4 decoration-[#2D1B4E]/30 hover:decoration-[#8E2A8B] hover:text-[#8E2A8B] transition-all duration-300 w-fit"
                                     >
                                         View Hub

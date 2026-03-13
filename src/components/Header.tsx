@@ -40,18 +40,32 @@ const Header = () => {
         setExpandedMobileMenu(expandedMobileMenu === label ? null : label);
     };
 
+    interface NavItem {
+        label: string;
+        path: string;
+        sub?: NavItem[];
+    }
+
     const topLinks = [
         { label: "About Us", path: "/about" },
         { label: "FAQs", path: "/faqs" },
         { label: "B2B", path: "/b2b" }
     ];
 
-    const mainNavLinks = [
+    const mainNavLinks: NavItem[] = [
         {
             label: "Handicrafts", path: "/category/handicrafts",
             sub: [
                 { label: "Coco Crafts", path: "/category/coco-crafts" },
-                { label: "Terracotta Ornaments", path: "/category/terracotta-ornaments" },
+                {
+                    label: "Terracotta Ornaments",
+                    path: "/category/terracotta-ornaments",
+                    sub: [
+                        { label: "Festival Wear", path: "/category/festival-wear" },
+                        { label: "Bridal Set", path: "/category/bridal-set" },
+                        { label: "Daily Wear", path: "/category/daily-wear" }
+                    ]
+                },
                 { label: "Banana Fibre Essentials", path: "/category/banana-fibre-essentials" },
                 { label: "Handwoven Crochet", path: "/category/handwoven-crochet" }
             ]
@@ -241,13 +255,47 @@ const Header = () => {
                                     <div className="absolute top-full left-0 bg-white shadow-xl rounded-b-lg py-4 min-w-[250px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50 border-t-2 border-[#b5128f]">
                                         <div className="flex flex-col">
                                             {link.sub.map((subLink) => (
-                                                <Link
-                                                    key={subLink.label}
-                                                    to={subLink.path}
-                                                    className="px-6 py-3 text-[14px] text-gray-700 hover:bg-[#F8F0FF] hover:text-[#b5128f] hover:font-bold transition-colors font-medium text-left"
-                                                >
-                                                    {subLink.label}
-                                                </Link>
+                                                <div key={subLink.label} className="relative group/sub">
+                                                    <Link
+                                                        to={subLink.path}
+                                                        className="px-6 py-3 text-[14px] text-gray-700 hover:bg-[#F8F0FF] hover:text-[#b5128f] hover:font-bold transition-colors font-medium flex items-center justify-between"
+                                                    >
+                                                        {subLink.label}
+                                                        {subLink.sub && <ChevronDown size={12} className="-rotate-90" />}
+                                                    </Link>
+
+                                                    {/* Third Level Dropdown */}
+                                                    {subLink.sub && (
+                                                        <div className="absolute left-full top-0 ml-0.5 bg-white shadow-xl rounded-lg py-2 min-w-[200px] opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-300 border-l-2 border-[#b5128f]">
+                                                            {subLink.sub.map(nested => (
+                                                                <div key={nested.label} className="relative group/nested">
+                                                                    <Link
+                                                                        to={nested.path}
+                                                                        className="px-6 py-2.5 text-[13px] text-gray-600 hover:bg-[#F8F0FF] hover:text-[#b5128f] transition-colors flex items-center justify-between"
+                                                                    >
+                                                                        {nested.label}
+                                                                        {nested.sub && <ChevronDown size={10} className="-rotate-90" />}
+                                                                    </Link>
+
+                                                                    {/* Fourth Level Dropdown */}
+                                                                    {nested.sub && (
+                                                                        <div className="absolute left-full top-0 ml-0.5 bg-white shadow-xl rounded-lg py-2 min-w-[180px] opacity-0 invisible group-hover/nested:opacity-100 group-hover/nested:visible transition-all duration-300 border-l-2 border-[#b5128f]">
+                                                                            {nested.sub.map(fourth => (
+                                                                                <Link
+                                                                                    key={fourth.label}
+                                                                                    to={fourth.path}
+                                                                                    className="block px-6 py-2 text-[12px] text-gray-500 hover:bg-[#F8F0FF] hover:text-[#b5128f] transition-colors"
+                                                                                >
+                                                                                    {fourth.label}
+                                                                                </Link>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
@@ -311,14 +359,60 @@ const Header = () => {
                                             >
                                                 <div className="flex flex-col space-y-1 pl-4 border-l-2 border-[#b5128f]/20 ml-1">
                                                     {link.sub.map((subLink) => (
-                                                        <Link
-                                                            key={subLink.label}
-                                                            to={subLink.path}
-                                                            onClick={() => setIsOpen(false)}
-                                                            className="py-2 text-[13px] text-gray-600 hover:text-[#b5128f] transition-colors"
-                                                        >
-                                                            {subLink.label}
-                                                        </Link>
+                                                        <div key={subLink.label}>
+                                                            <div className="flex items-center justify-between">
+                                                                <Link
+                                                                    to={subLink.path}
+                                                                    onClick={() => setIsOpen(false)}
+                                                                    className="py-2 text-[13px] text-gray-600 hover:text-[#b5128f] transition-colors flex-1"
+                                                                >
+                                                                    {subLink.label}
+                                                                </Link>
+                                                                {subLink.sub && (
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.preventDefault();
+                                                                            toggleMobileSubMenu(subLink.label);
+                                                                        }}
+                                                                        className={`p-2 transition-transform duration-300 ${expandedMobileMenu === subLink.label ? 'rotate-180' : ''}`}
+                                                                    >
+                                                                        <ChevronDown size={14} className="text-gray-300" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+
+                                                            {subLink.sub && (
+                                                                <div className={`overflow-hidden transition-all duration-300 ${expandedMobileMenu === subLink.label ? 'max-h-[200px] opacity-100 mb-2' : 'max-h-0 opacity-0'}`}>
+                                                                    <div className="flex flex-col pl-4 border-l border-gray-100 space-y-1 mt-1">
+                                                                        {subLink.sub.map(nested => (
+                                                                            <div key={nested.label}>
+                                                                                <Link
+                                                                                    to={nested.path}
+                                                                                    onClick={() => setIsOpen(false)}
+                                                                                    className="py-1.5 text-[12px] text-gray-400 hover:text-[#b5128f] block"
+                                                                                >
+                                                                                    {nested.label}
+                                                                                </Link>
+                                                                                {nested.sub && (
+                                                                                    <div className="flex flex-col pl-4 border-l border-gray-50 space-y-1 ml-1 mb-2">
+                                                                                        {nested.sub.map(fourth => (
+                                                                                            <Link
+                                                                                                key={fourth.label}
+                                                                                                to={fourth.path}
+                                                                                                onClick={() => setIsOpen(false)}
+                                                                                                className="py-1 text-[11px] text-gray-400/80 hover:text-[#b5128f]"
+                                                                                            >
+                                                                                                {fourth.label}
+                                                                                            </Link>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     ))}
                                                 </div>
                                             </div>

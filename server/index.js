@@ -10,7 +10,15 @@ const { verifyConnection } = require('./utils/mailer');
 const { createClient } = require('@supabase/supabase-js');
 const NodeCache = require('node-cache');
 const compression = require('compression');
+const multer = require('multer');
 require('dotenv').config();
+
+// Multer Setup for image memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 } // 5MB Limit
+});
 
 // Import Shiprocket Service for automatic shipment creation
 const shiprocketService = require('./services/shiprocketService');
@@ -224,6 +232,46 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Private-Network', 'true');
     res.setHeader('Permissions-Policy', 'accelerometer=*, gyroscope=*, magnetometer=*, payment=*');
     next();
+});
+
+// Indian Post API
+app.get('/api/location/pincode/:pincode', async (req, res) => {
+    // ... existing pincode logic ...
+});
+
+// --- Supabase Storage Proxy (Admin Only) ---
+// This bypasses RLS policies because it uses the server-side SERVICE_ROLE_KEY
+app.post('/api/storage/upload', authenticateAdmin, upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const folder = req.body.folder || 'products';
+        const fileExt = req.file.originalname.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+        const filePath = `${folder}/${fileName}`;
+
+        console.log(`📡 Uploading ${req.file.originalname} to Supabase storage...`);
+
+        const { data, error } = await supabase.storage
+            .from('products')
+            .upload(filePath, req.file.buffer, {
+                contentType: req.file.mimetype,
+                upsert: true
+            });
+
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('products')
+            .getPublicUrl(data.path);
+
+        res.json({ publicUrl, path: data.path });
+    } catch (err) {
+        console.error('❌ Storage Upload Error:', err);
+        res.status(500).json({ error: 'Failed to upload image', details: err.message });
+    }
 });
 
 // Test Route
@@ -480,29 +528,26 @@ app.get('/api/products', async (req, res) => {
             return res.json(cachedProducts);
         }
 
-        console.log('🔍 Fetching products from database...');
-        const query = `
-            SELECT 
-                id, name, price, category, image, images, slug, 
-                category_slug, short_description, description, 
-                key_features, features, is_best_seller, is_gift_bundle_item,
-                is_custom_request, custom_form_config, 
-                default_form_fields, variants, created_at
-            FROM products
-            ORDER BY created_at DESC
-        `;
+        console.log('🔍 Fetching products from Supabase...');
         console.time('DB_FETCH_PRODUCTS');
-        const result = await db.query(query);
+        
+        const { data: dbProducts, error } = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+
         console.timeEnd('DB_FETCH_PRODUCTS');
+
+        if (error) throw error;
 
         // Update Cache
         try {
-            productCache.set("all_products", result.rows);
+            productCache.set("all_products", dbProducts);
         } catch (cacheErr) {
             console.warn('⚠️ Cache Write Error:', cacheErr);
         }
 
-        res.json(result.rows);
+        res.json(dbProducts);
     } catch (err) {
         console.error('❌ Products Fetch Error - Stack:', err.stack);
         console.error('❌ Products Fetch Error - Msg:', err.message);
@@ -563,21 +608,34 @@ app.get('/api/products/:slug', async (req, res) => {
             return res.json(cachedProduct);
         }
 
-        const result = await db.query('SELECT * FROM products WHERE slug = $1', [slug]);
+        const { data: product, error: productError } = await supabase
+            .from('products')
+            .select('*')
+            .eq('slug', slug)
+            .single();
 
-        if (result.rows.length === 0) {
+        if (productError || !product) {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        const product = result.rows[0];
-        // Fetch reviews with camelCase keys
-        const reviewsQuery = `
-            SELECT id, product_id as "productId", user_name as "userName", email, rating, comment, date
-            FROM reviews 
-            WHERE product_id = $1
-        `;
-        const reviewsResult = await db.query(reviewsQuery, [product.id]);
-        product.reviews = reviewsResult.rows;
+        // Fetch reviews 
+        const { data: reviews, error: reviewsError } = await supabase
+            .from('reviews')
+            .select('id, product_id, user_name, email, rating, comment, date')
+            .eq('product_id', product.id);
+
+        if (reviewsError) throw reviewsError;
+
+        // Map reviews to camelCase for frontend consistency
+        product.reviews = reviews.map(r => ({
+            id: r.id,
+            productId: r.product_id,
+            userName: r.user_name,
+            email: r.email,
+            rating: r.rating,
+            comment: r.comment,
+            date: r.date
+        }));
 
         // Save to cache
         productCache.set(cacheKey, product);
@@ -590,40 +648,44 @@ app.get('/api/products/:slug', async (req, res) => {
 
 // Create Product (Admin Only)
 app.post('/api/products', authenticateAdmin, async (req, res) => {
-    // ... existing logs ...
     try {
-        // ... existing destructuring ...
         const {
             name, price, category, image, slug, categorySlug,
             shortDescription, description, keyFeatures, features, images, isBestSeller,
             isGiftBundleItem, isCustomRequest, customFormConfig, defaultFormFields, variants
         } = req.body;
 
-        const query = `
-            INSERT INTO products (
-                name, price, category, image, slug,
-                category_slug, short_description, description,
-                key_features, features, images, is_best_seller, is_gift_bundle_item,
-                is_custom_request, custom_form_config, default_form_fields, variants
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-            RETURNING *
-        `;
+        // Use Supabase client to bypass RLS (if SERVICE_ROLE_KEY is used)
+        const { data, error } = await supabase
+            .from('products')
+            .insert([{
+                name,
+                price: Number(price),
+                category,
+                image,
+                slug,
+                category_slug: categorySlug,
+                short_description: shortDescription,
+                description,
+                key_features: keyFeatures,
+                features,
+                images,
+                is_best_seller: isBestSeller || false,
+                is_gift_bundle_item: isGiftBundleItem || false,
+                is_custom_request: isCustomRequest || false,
+                custom_form_config: customFormConfig,
+                default_form_fields: defaultFormFields,
+                variants: variants
+            }])
+            .select()
+            .single();
 
-        const values = [
-            name, price, category, image, slug,
-            categorySlug, shortDescription, description,
-            keyFeatures, features, images, isBestSeller || false,
-            isGiftBundleItem || false,
-            isCustomRequest || false,
-            customFormConfig ? JSON.stringify(customFormConfig) : null,
-            defaultFormFields ? JSON.stringify(defaultFormFields) : null,
-            variants ? JSON.stringify(variants) : null
-        ];
+        if (error) throw error;
 
-        const result = await db.query(query, values);
         clearProductCache();
-        res.status(201).json(result.rows[0]);
+        res.status(201).json(data);
     } catch (err) {
+        console.error('❌ Failed to create product:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -638,34 +700,37 @@ app.put('/api/products/:id', authenticateAdmin, async (req, res) => {
             isGiftBundleItem, isCustomRequest, customFormConfig, defaultFormFields, variants
         } = req.body;
 
-        const query = `
-            UPDATE products SET
-                name = $1, price = $2, category = $3, image = $4, slug = $5, 
-                category_slug = $6, short_description = $7, description = $8, 
-                key_features = $9, features = $10, images = $11, is_best_seller = $12,
-                is_gift_bundle_item = $13, is_custom_request = $14, custom_form_config = $15, 
-                default_form_fields = $16, variants = $17
-            WHERE id = $18
-            RETURNING *
-        `;
+        const { data, error } = await supabase
+            .from('products')
+            .update({
+                name,
+                price: Number(price),
+                category,
+                image,
+                slug,
+                category_slug: categorySlug,
+                short_description: shortDescription,
+                description,
+                key_features: keyFeatures,
+                features,
+                images,
+                is_best_seller: isBestSeller || false,
+                is_gift_bundle_item: isGiftBundleItem || false,
+                is_custom_request: isCustomRequest || false,
+                custom_form_config: customFormConfig,
+                default_form_fields: defaultFormFields,
+                variants: variants
+            })
+            .eq('id', id)
+            .select()
+            .single();
 
-        const values = [
-            name, price, category, image, slug,
-            categorySlug, shortDescription, description,
-            keyFeatures, features, images, isBestSeller || false,
-            isGiftBundleItem || false,
-            isCustomRequest || false,
-            customFormConfig ? JSON.stringify(customFormConfig) : null,
-            defaultFormFields ? JSON.stringify(defaultFormFields) : null,
-            variants ? JSON.stringify(variants) : null,
-            id
-        ];
+        if (error) throw error;
 
-        const result = await db.query(query, values);
-        if (result.rows.length === 0) return res.status(404).json({ message: 'Product not found' });
         clearProductCache();
-        res.json(result.rows[0]);
+        res.json(data);
     } catch (err) {
+        console.error('❌ Failed to update product:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -674,11 +739,20 @@ app.put('/api/products/:id', authenticateAdmin, async (req, res) => {
 app.delete('/api/products/:id', authenticateAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await db.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
-        if (result.rows.length === 0) return res.status(404).json({ message: 'Product not found' });
+        
+        const { data, error } = await supabase
+            .from('products')
+            .delete()
+            .eq('id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+
         clearProductCache();
-        res.json({ message: 'Product deleted successfully' });
+        res.json({ message: 'Product deleted successfully', product: data });
     } catch (err) {
+        console.error('❌ Failed to delete product:', err);
         res.status(500).json({ error: err.message });
     }
 });
@@ -688,16 +762,20 @@ app.post('/api/reviews', async (req, res) => {
     try {
         const { productId, userName, email, rating, comment, date } = req.body;
 
-        const query = `
-            INSERT INTO reviews (product_id, user_name, email, rating, comment, date)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            RETURNING *
-        `;
+        const { data: returnedReview, error } = await supabase
+            .from('reviews')
+            .insert([{
+                product_id: productId,
+                user_name: userName,
+                email,
+                rating,
+                comment,
+                date: date || new Date().toISOString()
+            }])
+            .select()
+            .single();
 
-        const values = [productId, userName, email, rating, comment, date];
-        const result = await db.query(query, values);
-
-        const returnedReview = result.rows[0];
+        if (error) throw error;
         // Map back to camelCase for frontend
         const reviewResponse = {
             id: returnedReview.id,
@@ -832,23 +910,33 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
         // Ensure the phone is anchored to the authenticated user if possible
         const storedPhone = req.user.mobile || customerPhone;
 
-        const query = `
-            INSERT INTO orders (
-                customer_name, customer_email, customer_phone, address, city, district, state,
-                pincode, total, items, payment_id, order_id,
-                subtotal_server, shipping_server, total_server, zone_name
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-            RETURNING *
-        `;
+        const { data: row, error: insertError } = await supabase
+            .from('orders')
+            .insert([{
+                customer_name: customerName,
+                customer_email: customerEmail,
+                customer_phone: storedPhone,
+                address,
+                city,
+                district,
+                state,
+                pincode,
+                total,
+                items: items,
+                payment_id: paymentId,
+                order_id: orderId,
+                subtotal_server: serverSubtotalCents,
+                shipping_server: serverShippingCents,
+                total_server: serverTotalCents,
+                zone_name: shippingResult.zoneName
+            }])
+            .select()
+            .single();
 
-        const values = [
-            customerName, customerEmail, storedPhone, address, city, district, state,
-            pincode, total, JSON.stringify(items), paymentId, orderId,
-            serverSubtotalCents, serverShippingCents, serverTotalCents, shippingResult.zoneName
-        ];
-
-        const result = await db.query(query, values);
-        const row = result.rows[0];
+        if (insertError) {
+            console.error('❌ ORDER_INSERT_FAILED:', insertError);
+            throw new Error(`Failed to save order: ${insertError.message}`);
+        }
 
         res.status(201).json({
             id: row.id,
@@ -974,12 +1062,15 @@ app.post('/api/orders', authenticateToken, async (req, res) => {
             console.log(`🚚 Shipment ID: ${shipmentResult.shipmentId}`);
 
             // Update database with Shiprocket details
-            await db.query(
-                `UPDATE orders 
-                 SET shiprocket_order_id = $1, shipment_id = $2 
-                 WHERE id = $3`,
-                [shipmentResult.orderId, shipmentResult.shipmentId, row.id]
-            );
+            const { error: shipError } = await supabase
+                .from('orders')
+                .update({ 
+                    shiprocket_order_id: shipmentResult.orderId, 
+                    shipment_id: shipmentResult.shipmentId 
+                })
+                .eq('id', row.id);
+
+            if (shipError) throw shipError;
 
             console.log(`✅ Database updated with Shiprocket details for Order #${orderId}`);
 
@@ -1000,9 +1091,14 @@ app.get('/api/orders', async (req, res) => {
         // Admin Access Bypass
         const adminSecret = req.headers['x-admin-secret'];
         if (adminSecret && adminSecret === (process.env.ADMIN_PASSWORD || 'admin123')) {
-            const query = 'SELECT * FROM orders ORDER BY created_at DESC';
-            const result = await db.query(query);
-            return res.json(result.rows.map(row => ({
+            const { data: rows, error } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            return res.json(rows.map(row => ({
                 id: row.id,
                 orderId: row.order_id,
                 customerName: row.customer_name,
@@ -1018,39 +1114,40 @@ app.get('/api/orders', async (req, res) => {
 
         // Standard User Access (Requires Token)
         authenticateToken(req, res, async () => {
-            // Use email for new users, fallback to mobile for legacy users
             const userEmail = req.user.email;
             const userMobile = req.user.mobile;
 
             if (!userEmail && !userMobile) return res.json([]);
 
-            let query, params;
+            try {
+                let query;
+                if (userEmail) {
+                    query = supabase.from('orders').select('*').ilike('customer_email', userEmail);
+                } else {
+                    const sanitizedPhone = userMobile.replace(/\D/g, "").slice(-10);
+                    if (!sanitizedPhone || sanitizedPhone.length < 10) return res.json([]);
+                    query = supabase.from('orders').select('*').like('customer_phone', `%${sanitizedPhone}%`);
+                }
 
-            if (userEmail) {
-                // Email-based user: filter by email
-                query = 'SELECT * FROM orders WHERE LOWER(customer_email) = LOWER($1) ORDER BY created_at DESC';
-                params = [userEmail];
-            } else {
-                // Legacy phone-based user: filter by phone
-                const sanitizedPhone = userMobile.replace(/\D/g, "").slice(-10);
-                if (!sanitizedPhone || sanitizedPhone.length < 10) return res.json([]);
-                query = 'SELECT * FROM orders WHERE customer_phone LIKE $1 ORDER BY created_at DESC';
-                params = [`%${sanitizedPhone}`];
+                const { data: rows, error } = await query.order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                res.json(rows.map(row => ({
+                    id: row.id,
+                    orderId: row.order_id,
+                    customerName: row.customer_name,
+                    customerEmail: row.customer_email,
+                    customerPhone: row.customer_phone,
+                    total: parseFloat(row.total),
+                    status: row.status,
+                    date: row.created_at,
+                    items: row.items,
+                    paymentId: row.payment_id
+                })));
+            } catch (err) {
+                res.status(500).json({ error: err.message });
             }
-
-            const result = await db.query(query, params);
-            res.json(result.rows.map(row => ({
-                id: row.id,
-                orderId: row.order_id,
-                customerName: row.customer_name,
-                customerEmail: row.customer_email,
-                customerPhone: row.customer_phone,
-                total: parseFloat(row.total),
-                status: row.status,
-                date: row.created_at,
-                items: row.items,
-                paymentId: row.payment_id
-            })));
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -1397,18 +1494,18 @@ app.post('/api/auth/verify-otp', async (req, res) => {
 // Public endpoint for users to apply to become an alliance
 app.post('/api/alliance', async (req, res) => {
     try {
-        const { name, address, phone, instaId, facebookId } = req.body;
+        const { name, address, phone, instaId, facebookId, twitterId, youtubeId } = req.body;
 
         if (!name || !address || !phone) {
             return res.status(400).json({ error: 'Name, address, and phone number are required.' });
         }
 
         const query = `
-            INSERT INTO alliance_applications (name, address, phone, insta_id, facebook_id)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO alliance_applications (name, address, phone, insta_id, facebook_id, twitter_id, youtube_id)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
             RETURNING *
         `;
-        const values = [name, address, phone, instaId || null, facebookId || null];
+        const values = [name, address, phone, instaId || null, facebookId || null, twitterId || null, youtubeId || null];
         const result = await db.query(query, values);
 
         res.status(201).json({
@@ -1440,7 +1537,7 @@ app.get('/api/alliance/export', authenticateAdmin, async (req, res) => {
         const apps = result.rows;
 
         // CSV Header
-        let csv = 'ID,Name,Phone,Instagram,Facebook,Address,Date Applied\n';
+        let csv = 'ID,Name,Phone,Instagram,Facebook,Twitter,YouTube,Address,Date Applied\n';
 
         apps.forEach(app => {
             const row = [
@@ -1449,6 +1546,8 @@ app.get('/api/alliance/export', authenticateAdmin, async (req, res) => {
                 `"${app.phone}"`,
                 `"${(app.insta_id || '').replace(/"/g, '""')}"`,
                 `"${(app.facebook_id || '').replace(/"/g, '""')}"`,
+                `"${(app.twitter_id || '').replace(/"/g, '""')}"`,
+                `"${(app.youtube_id || '').replace(/"/g, '""')}"`,
                 `"${(app.address || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`,
                 new Date(app.created_at).toLocaleString()
             ];
@@ -1811,6 +1910,16 @@ if (process.env.NODE_ENV !== 'production') {
                     EXCEPTION
                         WHEN duplicate_column THEN NULL;
                     END;
+
+                    -- Alliance Applications Migration
+                    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'alliance_applications') THEN
+                        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alliance_applications' AND column_name = 'twitter_id') THEN
+                            ALTER TABLE alliance_applications ADD COLUMN twitter_id VARCHAR(255);
+                        END IF;
+                        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'alliance_applications' AND column_name = 'youtube_id') THEN
+                            ALTER TABLE alliance_applications ADD COLUMN youtube_id VARCHAR(255);
+                        END IF;
+                    END IF;
 
                 -- Visitor Events Migration: Ensure all columns exist
                 IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'visitor_events') THEN
