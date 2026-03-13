@@ -11,10 +11,7 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarC
 import { categories } from '@/data/products';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { supabase } from '@/utils/supabaseClient';
-
-
-
+// import { supabase } from '@/utils/supabaseClient';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();

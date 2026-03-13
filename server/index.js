@@ -37,8 +37,8 @@ verifyConnection().then(isConnected => {
 const productCache = new NodeCache({ stdTTL: 3600, checkperiod: 600 }); // 1 hour default TTL
 
 const clearProductCache = () => {
-    productCache.del("all_products");
-    console.log('🧹 Product cache cleared');
+    productCache.flushAll();
+    console.log('🧹 Performance cache completely flushed');
 };
 
 
@@ -525,6 +525,7 @@ app.get('/api/products', async (req, res) => {
         const cachedProducts = productCache.get("all_products");
         if (cachedProducts) {
             console.log('⚡ Serving products from cache');
+            res.setHeader('Cache-Control', 'public, max-age=60'); // Allow browser caching for 60s
             return res.json(cachedProducts);
         }
 
@@ -564,8 +565,13 @@ app.get('/api/cache-reset', authenticateAdmin, (req, res) => {
 // Meta (Facebook/WhatsApp) Catalog Feed Automation (Secured)
 app.get('/api/catalog-feed', authenticateAdmin, async (req, res) => {
     try {
-        const result = await db.query('SELECT * FROM products ORDER BY created_at DESC');
-        const products = result.rows;
+        // Use cache if available
+        let products = productCache.get("all_products");
+        if (!products) {
+            const result = await db.query('SELECT * FROM products ORDER BY created_at DESC');
+            products = result.rows;
+            productCache.set("all_products", products);
+        }
 
         // CSV Header - Added product_type for auto-categorization
         let csv = 'id,title,description,availability,condition,price,link,image_link,brand,product_type\n';

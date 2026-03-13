@@ -110,7 +110,6 @@ const Footer = () => {
 
                 <div className="flex items-center gap-8">
                     <p>© 2025-2026 Kottravai.com</p>
-                    <Link to="/admin/login" className="text-[10px] text-gray-600 hover:text-white transition-colors uppercase tracking-widest font-bold">Admin</Link>
                 </div>
             </div>
 
