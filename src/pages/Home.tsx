@@ -93,13 +93,13 @@ const Home = () => {
             </LazyRender>
 
             <LazyRender placeholderHeight={300}>
-                <Suspense fallback={<SectionSkeleton />}
+                <Suspense fallback={<SectionSkeleton />}>
                     {/* Feature Promotional Cards */}
                     <FeatureCards />
-            </Suspense>
-        </LazyRender>
+                </Suspense>
+            </LazyRender>
 
-            {/* WhatsApp Banner — static HTML, no JS cost (placed above New Arrivals) */ }
+            {/* WhatsApp Banner — static HTML, no JS cost (placed above New Arrivals) */}
             <LazyRender placeholderHeight={100}>
                 <div className="w-full pt-8 pb-4 px-4 md:px-8">
                     <div className="max-w-[1240px] mx-auto">
@@ -160,14 +160,14 @@ const Home = () => {
                 </Suspense>
             </LazyRender>
 
-    {/* Coco Crafts Section — Premium Redesign */ }
-    <LazyRender placeholderHeight={450}>
-        <Suspense fallback={<SectionSkeleton />}>
-            <CocoCraftsRow />
-        </Suspense>
-    </LazyRender>
+            {/* Coco Crafts Section — Premium Redesign */}
+            <LazyRender placeholderHeight={450}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    <CocoCraftsRow />
+                </Suspense>
+            </LazyRender>
 
-    {/* Banana Fiber Section — New Design */ }
+            {/* Banana Fiber Section — New Design */}
             <LazyRender placeholderHeight={450}>
                 <Suspense fallback={<SectionSkeleton />}>
                     <BananaFiberRow />
@@ -192,7 +192,7 @@ const Home = () => {
                 </Suspense>
             </LazyRender>
 
-        </MainLayout >
+        </MainLayout>
     );
 };
 
