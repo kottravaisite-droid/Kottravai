@@ -55,13 +55,13 @@ const HeroSlider = () => {
 
     return (
         <section 
-            className="relative w-full overflow-hidden bg-white group hero-section-container aspect-[768/400] md:aspect-[1920/600]"
+            className="relative w-full overflow-hidden bg-white group hero-section-container aspect-[1920/1044]"
         >
-            <div className="w-full relative aspect-[768/400] md:aspect-[1920/600]">
+            <div className="w-full relative aspect-[1920/1044]">
                 {slides.map((slide, index) => (
                     <div
                         key={index}
-                        className={`${index === 0 ? 'relative' : 'absolute inset-0'} ${isLoaded ? 'transition-opacity duration-1000 ease-in-out' : ''} ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                        className={`absolute inset-0 w-full h-full ${isLoaded ? 'transition-opacity duration-1000 ease-in-out' : ''} ${index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
                             }`}
                     >
                     <a href={slide.link} className="block w-full h-full">
@@ -69,14 +69,14 @@ const HeroSlider = () => {
                             <source 
                                 media="(max-width: 768px)" 
                                 srcSet={slide.mobileImage}
-                                width={768}
-                                height={400}
+                                width={1920}
+                                height={1044}
                             />
                             <img
                                 src={slide.image}
                                 alt={slide.alt}
                                 width={1920}
-                                height={600}
+                                height={1044}
                                 className="w-full h-full object-cover"
                                 // First slide = LCP element: eager + high priority
                                 loading={index === 0 ? 'eager' : 'lazy'}

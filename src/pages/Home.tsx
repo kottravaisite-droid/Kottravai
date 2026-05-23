@@ -41,6 +41,7 @@ const Home = () => {
             <Helmet>
                 <title>Kottravai | Handmade Crafts, Eco Products &amp; Traditional Food Mixes.</title>
                 <meta name="description" content="Kottravai offers premium handcrafted terracotta jewellery, heritage mixes, and essential care products. Shop our exclusive collection today." />
+                <link rel="preload" as="image" href="/hero.webp" fetchPriority="high" />
             </Helmet>
 
             {/* 1. Hero — EAGER, LCP element lives here */}
