@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState, useEffect, useRef, ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
 import MainLayout from '@/layouts/MainLayout';
 
@@ -35,6 +35,38 @@ const SectionSkeleton = () => (
     </div>
 );
 
+// ✅ Premium scroll-deferred lazy-rendering helper to solve mobile NO_LCP & TBT errors
+const LazyRender = ({ children, placeholderHeight = 150 }: { children: ReactNode; placeholderHeight?: number }) => {
+    const [isIntersecting, setIsIntersecting] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsIntersecting(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '350px' } // Load slightly before it enters the viewport
+        );
+
+        if (ref.current) {
+            observer.observe(ref.current);
+        }
+
+        return () => observer.disconnect();
+    }, []);
+
+    return isIntersecting ? (
+        <>{children}</>
+    ) : (
+        <div ref={ref} className="w-full" style={{ minHeight: placeholderHeight }} />
+    );
+};
+
 const Home = () => {
     return (
         <MainLayout>
@@ -53,84 +85,112 @@ const Home = () => {
             {/* 2. Best Sellers — EAGER, visible above fold on desktop */}
             <BestSellers />
 
-            <Suspense fallback={<SectionSkeleton />}>
-                {/* Note: placing media feature immediately after Best Sellers */}
-                <FeaturedMedia />
-            </Suspense>
+            <LazyRender placeholderHeight={300}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    {/* Note: placing media feature immediately after Best Sellers */}
+                    <FeaturedMedia />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={<SectionSkeleton />}>
-                {/* Feature Promotional Cards */}
-                <FeatureCards />
-            </Suspense>
+            <LazyRender placeholderHeight={300}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    {/* Feature Promotional Cards */}
+                    <FeatureCards />
+                </Suspense>
+            </LazyRender>
 
             {/* WhatsApp Banner — static HTML, no JS cost (placed above New Arrivals) */}
-            <div className="w-full pt-8 pb-4 px-4 md:px-8">
-                <div className="max-w-[1240px] mx-auto">
-                    <a
-                        href="https://whatsapp.com/channel/0029VbAxfDt6rsQwQdzLjS2m"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block hover:opacity-95 transition-opacity"
-                    >
-                        <img
-                            src="/whatsapp-banner.webp"
-                            alt="Join Kottravai WhatsApp Community"
-                            width={1240}
-                            height={300}
-                            className="w-full h-auto object-cover shadow-sm animate-pulse-slow"
-                            loading="lazy"
-                            decoding="async"
-                        />
-                    </a>
+            <LazyRender placeholderHeight={100}>
+                <div className="w-full pt-8 pb-4 px-4 md:px-8">
+                    <div className="max-w-[1240px] mx-auto">
+                        <a
+                            href="https://whatsapp.com/channel/0029VbAxfDt6rsQwQdzLjS2m"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block hover:opacity-95 transition-opacity"
+                        >
+                            <img
+                                src="/whatsapp-banner.webp"
+                                alt="Join Kottravai WhatsApp Community"
+                                width={1240}
+                                height={300}
+                                className="w-full h-auto object-cover shadow-sm animate-pulse-slow"
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </a>
+                    </div>
                 </div>
-            </div>
+            </LazyRender>
 
-            <Suspense fallback={<SectionSkeleton />}>
-                {/* 2.1 New Arrivals */}
-                <NewArrivals />
-            </Suspense>
+            <LazyRender placeholderHeight={450}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    {/* 2.1 New Arrivals */}
+                    <NewArrivals />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={<SectionSkeleton />}>
-                <HampersRow />
-            </Suspense>
+            <LazyRender placeholderHeight={450}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    <HampersRow />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={<SectionSkeleton />}>
-                <CuratedMoments />
-            </Suspense>
+            <LazyRender placeholderHeight={400}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    <CuratedMoments />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={null}>
-                <TextTestimonials />
-            </Suspense>
+            <LazyRender placeholderHeight={200}>
+                <Suspense fallback={null}>
+                    <TextTestimonials />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={null}>
-                <JournalSection />
-            </Suspense>
+            <LazyRender placeholderHeight={300}>
+                <Suspense fallback={null}>
+                    <JournalSection />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={null}>
-                <SeeKottravaiInLife />
-            </Suspense>
+            <LazyRender placeholderHeight={300}>
+                <Suspense fallback={null}>
+                    <SeeKottravaiInLife />
+                </Suspense>
+            </LazyRender>
 
             {/* Coco Crafts Section — Premium Redesign */}
-            <Suspense fallback={<SectionSkeleton />}>
-                <CocoCraftsRow />
-            </Suspense>
+            <LazyRender placeholderHeight={450}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    <CocoCraftsRow />
+                </Suspense>
+            </LazyRender>
 
             {/* Banana Fiber Section — New Design */}
-            <Suspense fallback={<SectionSkeleton />}>
-                <BananaFiberRow />
-            </Suspense>
+            <LazyRender placeholderHeight={450}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    <BananaFiberRow />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={null}>
-                <GiftBundleBuilder />
-            </Suspense>
+            <LazyRender placeholderHeight={300}>
+                <Suspense fallback={null}>
+                    <GiftBundleBuilder />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={<SectionSkeleton />}>
-                <HeritageMixes />
-            </Suspense>
+            <LazyRender placeholderHeight={450}>
+                <Suspense fallback={<SectionSkeleton />}>
+                    <HeritageMixes />
+                </Suspense>
+            </LazyRender>
 
-            <Suspense fallback={null}>
-                <Testimonials />
-            </Suspense>
+            <LazyRender placeholderHeight={200}>
+                <Suspense fallback={null}>
+                    <Testimonials />
+                </Suspense>
+            </LazyRender>
 
         </MainLayout>
     );

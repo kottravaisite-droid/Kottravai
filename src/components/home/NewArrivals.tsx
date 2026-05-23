@@ -44,8 +44,8 @@ const NewArrivals = () => {
             index++;
         }
 
-        // 3. Return max 24 items for "New Arrivals" to give more space for variety
-        return interleaved.slice(0, 24);
+        const limit = typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 12;
+        return interleaved.slice(0, limit);
     }, [products, categories]);
 
     const scroll = (direction: 'left' | 'right') => {

@@ -152,7 +152,8 @@ const BestSellers = () => {
             const otherIdx = Math.floor(i/2);
             if (others[otherIdx]) interleaved.push(others[otherIdx]);
         }
-        return interleaved.slice(0, 24);
+        const limit = typeof window !== 'undefined' && window.innerWidth < 768 ? 6 : 12;
+        return interleaved.slice(0, limit);
     }, [products]);
 
     const scroll = (direction: 'left' | 'right') => {
