@@ -63,6 +63,9 @@ export interface Product {
     gstRate?: number;
     gst_rate?: number;
     original_id?: string;
+    product_name?: string;
+    productName?: string;
+    title?: string;
 }
 
 // Sample product to visualize changes immediately

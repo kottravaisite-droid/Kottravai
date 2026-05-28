@@ -17,6 +17,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, badge }) => {
     const { addToCart, cart, removeFromCart } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
 
+    const displayName = product.product_name || product.productName || product.title || product.name || 'Product';
+
     // Initialize with first variant if available
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
         product.variants && product.variants.length > 0 ? product.variants[0] : null
@@ -44,10 +46,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, badge }) => {
             toast.success('Removed from cart');
         } else {
             addToCart(product, 1, selectedVariant || undefined);
-            toast.success(`${product.name} added to cart!`);
+            toast.success(`${displayName} added to cart!`);
             analytics.trackEvent('add_to_cart', {
                 product_id: product.id,
-                product_name: product.name,
+                product_name: displayName,
                 price: selectedVariant?.price || product.price,
                 variant: selectedVariant?.weight || 'default'
             });
@@ -68,7 +70,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, badge }) => {
                 <Link to={`/product/${product.slug}`} className="block w-full h-full relative">
                     <img
                         src={getOptimizedImage(product.image, IMAGE_SIZES.CARD)}
-                        alt={product.name}
+                        alt={displayName}
                         width={400}
                         height={400}
                         loading="lazy"
@@ -78,7 +80,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, badge }) => {
                     {product.images && product.images.length > 0 && (
                         <img
                             src={getOptimizedImage(product.images[0], IMAGE_SIZES.CARD)}
-                            alt={`${product.name} hover`}
+                            alt={`${displayName} hover`}
                             width={400}
                             height={400}
                             loading="lazy"
@@ -114,7 +116,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, badge }) => {
                 <div className="flex justify-between items-start gap-2 mb-1">
                     <Link to={`/product/${product.slug}`} className="flex-1">
                         <h3 className="text-[14px] font-bold font-comfortaa text-brandPurple leading-tight line-clamp-1 hover:opacity-80 transition-opacity">
-                            {product.name}
+                            {displayName}
                         </h3>
                     </Link>
                     <div className="text-right">
