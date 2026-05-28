@@ -130,6 +130,7 @@ const Shop = () => {
 
                 const mappedProducts = allProducts.map((p: any) => ({
                     ...p,
+                    name: p.name || p.product_name || p.productName || p.title || 'Unnamed Product',
                     categorySlug: p.category_slug || p.categorySlug,
                     shortDescription: p.short_description || p.shortDescription || p.description,
                     isBestSeller: p.is_best_seller || false,
@@ -235,6 +236,8 @@ const Shop = () => {
         if (sortBy === 'default') return a.name.localeCompare(b.name); // Default to Alphabetical A-Z
         return 0;
     });
+
+    const getDisplayName = (product: any) => product.product_name || product.productName || product.title || product.name || 'Product';
 
     // Pagination Logic
     const indexOfLastProduct = currentPage * ITEMS_PER_PAGE;
@@ -432,7 +435,7 @@ const Shop = () => {
                                                     <Link to={`/product/${product.slug}`} className="block w-full h-full relative">
                                                         <img
                                                             src={getOptimizedImage(product.image, IMAGE_SIZES.CARD)}
-                                                            alt={product.name}
+                                                            alt={getDisplayName(product)}
                                                             width={400}
                                                             height={400}
                                                             loading="lazy"
@@ -442,7 +445,7 @@ const Shop = () => {
                                                         {product.images && product.images.length > 0 && (
                                                             <img
                                                                 src={getOptimizedImage(product.images[0], IMAGE_SIZES.CARD)}
-                                                                alt={`${product.name} hover`}
+                                                                alt={`${getDisplayName(product)} hover`}
                                                                 width={400}
                                                                 height={400}
                                                                 loading="lazy"
@@ -479,13 +482,13 @@ const Shop = () => {
                                                         ) : (product.variants && product.variants.length > 0) || Number(product.price) === 0 ? (
                                                             <span className="text-sm font-bold text-[#b5128f]">View Options</span>
                                                         ) : (
-                                                            <span className="text-lg font-black text-[#2D1B4E]">Γé╣{Number(product.price).toLocaleString('en-IN')}</span>
+                                                            <span className="text-lg font-black text-[#2D1B4E]">₹{Number(product.price).toLocaleString('en-IN')}</span>
                                                         )}
                                                     </div>
 
                                                     {/* Title */}
                                                     <h3 className="text-sm font-bold text-[#2D1B4E] leading-tight mb-1 line-clamp-2 group-hover:text-[#b5128f] transition-colors">
-                                                        <Link to={`/product/${product.slug}`}>{product.name}</Link>
+                                                        <Link to={`/product/${product.slug}`}>{getDisplayName(product)}</Link>
                                                     </h3>
 
                                                     {/* Short Description */}

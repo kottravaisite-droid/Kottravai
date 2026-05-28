@@ -20,27 +20,11 @@ interface ProductContextType {
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider = ({ children }: { children: ReactNode }) => {
-    const [products, setProducts] = useState<Product[]>(() => {
-        // Try to load from local storage for instant initial paint
-        const saved = safeGetItem('kottravai_cache_products');
-        if (saved) {
-            try {
-                return JSON.parse(saved);
-            } catch (e) {
-                return [];
-            }
-        }
-        return [];
-    });
-    const [loading, setLoading] = useState(() => {
-        // Only show loader if we have no cached data
-        return !safeGetItem('kottravai_cache_products');
-    });
-
     // Helper to map DB snake_case to Frontend camelCase
     const mapProductFromDB = (p: any): Product => ({
         ...p,
         id: p.id,
+        name: p.product_name || p.productName || p.title || p.name || 'Unnamed Product',
         categorySlug: p.category_slug || p.categorySlug,
         shortDescription: p.short_description || p.shortDescription,
         keyFeatures: p.key_features || p.keyFeatures || [],
@@ -64,6 +48,22 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         min_affiliate_level: p.min_affiliate_level || p.minAffiliateLevel || 'Ambassador'
     });
 
+    const [products, setProducts] = useState<Product[]>(() => {
+        const saved = safeGetItem('kottravai_cache_products');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                return Array.isArray(parsed) ? parsed.map(mapProductFromDB) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    });
+    const [loading, setLoading] = useState(() => {
+        return !safeGetItem('kottravai_cache_products');
+    });
+
     const lastFetchRef = useRef<number>(0);
     const fetchProducts = useCallback(async (force = false) => {
         // High-Efficiency Check: Use cache if it's less than 30 minutes old
@@ -81,7 +81,8 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
         if (!force && !isEmpty && cacheTime && sessionChecked) {
             const isFresh = Date.now() - parseInt(cacheTime) < CACHE_TTL;
             if (isFresh) {
-                setProducts(JSON.parse(cachedProducts));
+                const parsed = JSON.parse(cachedProducts);
+                setProducts(Array.isArray(parsed) ? parsed.map(mapProductFromDB) : []);
                 setLoading(false);
                 return;
             }
@@ -116,12 +117,18 @@ export const ProductProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 console.error("API returned non-array data:", response.data);
                 // Fallback to cache if API fails to return an array
-                if (cachedProducts) setProducts(JSON.parse(cachedProducts));
+                if (cachedProducts) {
+                    const parsed = JSON.parse(cachedProducts);
+                    setProducts(Array.isArray(parsed) ? parsed.map(mapProductFromDB) : []);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch products from API", error);
             // Fallback to cache on network failure
-            if (cachedProducts) setProducts(JSON.parse(cachedProducts));
+            if (cachedProducts) {
+                const parsed = JSON.parse(cachedProducts);
+                setProducts(Array.isArray(parsed) ? parsed.map(mapProductFromDB) : []);
+            }
         } finally {
             setLoading(false);
         }
