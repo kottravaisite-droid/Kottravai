@@ -255,7 +255,7 @@ const Checkout = () => {
                 name: "Kottravai",
                 description: "Transaction for Order #" + activeOrder.id,
                 order_id: activeOrder.id,
-                handler: async function (response: any) {
+                handler: async (response: any) => {
                     setIsSubmitting(true);
                     console.log("Payment completed by user", response);
 
@@ -311,7 +311,6 @@ const Checkout = () => {
 
                         if (verifyResult.status === "success") {
                             console.log("✅ ORDER SUCCESS: Payment verified");
-                            const orderTrackingKey = `kottravai_purchase_completed_${activeOrder.id}`;
                             analytics.trackEvent('purchase_completed', {
                                 order_id: activeOrder.id,
                                 payment_id: response.razorpay_payment_id,
@@ -319,6 +318,7 @@ const Checkout = () => {
                                 order_total: finalTotal,
                                 item_count: cart.length,
                                 total_amount: finalTotal
+                            });
                             localStorage.removeItem('kottravai_affiliate_ref_time');
                             navigate('/order-success', { state: { orderData } });
                         } else {
