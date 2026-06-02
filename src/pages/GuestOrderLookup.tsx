@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useGuestAuth } from '../contexts/GuestAuthContext';
-import { GuestCheckoutModal } from '../components/checkout/GuestCheckoutModal';
+import GuestCheckoutModal from '../components/GuestCheckoutModal';
 
 export const GuestOrderLookup = () => {
   const { isAuthenticated, profile } = useGuestAuth();
@@ -16,7 +16,7 @@ export const GuestOrderLookup = () => {
           <button onClick={() => setIsModalOpen(true)} className="mt-4 bg-blue-600 text-white p-2 rounded">
             Verify Phone
           </button>
-          <GuestCheckoutModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+          <GuestCheckoutModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSuccess={() => setIsModalOpen(false)} />
         </div>
       ) : (
         <div>

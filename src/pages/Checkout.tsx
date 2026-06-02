@@ -97,7 +97,7 @@ const Checkout = () => {
         } else if (guestAuth.profile) {
             setFormData(prev => ({
                 ...prev,
-                phone: prev.phone || guestAuth.profile.phone || ''
+                phone: prev.phone || guestAuth.profile?.phone || ''
             }));
         }
     }, [user, guestAuth.profile]);

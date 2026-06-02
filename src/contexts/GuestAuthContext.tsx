@@ -1,8 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS } from '../config/api';
-import analytics from '../utils/analyticsService';
-
 interface GuestProfile {
   id: string;
   phone: string;
