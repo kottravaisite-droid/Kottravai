@@ -205,10 +205,12 @@ const RAW_EVENTS_HEADER_ROW = [
   'State',
   'City',
   'Region',
-  'ISP'
+  'ISP',
+  'Approx Latitude',
+  'Approx Longitude'
 ];
 
-const DEFAULT_RANGE = `${RAW_EVENTS_SHEET_TITLE}!A1:AC`;
+const DEFAULT_RANGE = `${RAW_EVENTS_SHEET_TITLE}!A1:AE`;
 
 async function ensureAnalyticsSheetExists(s, spreadsheetData) {
   const spreadsheet = spreadsheetData || await getSpreadsheetMetadata(s);
@@ -260,7 +262,7 @@ async function ensureAnalyticsSheetExists(s, spreadsheetData) {
   const createdSheet = createResponse.data.replies[0].addSheet.properties;
   await s.spreadsheets.values.update({
     spreadsheetId: SHEET_ID,
-    range: `${RAW_EVENTS_SHEET_TITLE}!A1:AC1`,
+    range: `${RAW_EVENTS_SHEET_TITLE}!A1:AE1`,
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [RAW_EVENTS_HEADER_ROW] }
   });
@@ -437,7 +439,7 @@ async function ensureRawEventsSheetExists(s, spreadsheetData) {
 
   await s.spreadsheets.values.update({
     spreadsheetId: SHEET_ID,
-    range: `${RAW_EVENTS_SHEET_TITLE}!A1:AC1`,
+    range: `${RAW_EVENTS_SHEET_TITLE}!A1:AE1`,
     valueInputOption: 'USER_ENTERED',
     requestBody: { values: [RAW_EVENTS_HEADER_ROW] }
   });
@@ -610,6 +612,8 @@ function buildAggregations(rows) {
           country: String(row['geo_country'] || row['country'] || 'Unknown').trim(),
           state: String(row['geo_state'] || row['state'] || 'Unknown').trim(),
           city: String(row['geo_city'] || row['city'] || 'Unknown').trim(),
+          latitude: String(row['geo_latitude'] || '').trim(),
+          longitude: String(row['geo_longitude'] || '').trim(),
           source,
           device: String(row['device'] || row['device_type'] || 'Unknown').trim(),
           browser: String(row['browser'] || 'Unknown').trim(),
@@ -638,6 +642,10 @@ function buildAggregations(rows) {
 
         if (row['geo_city'] && row['geo_city'] !== 'Unknown') vp.city = String(row['geo_city']).trim();
         else if (row['city'] && row['city'] !== 'Unknown') vp.city = String(row['city']).trim();
+
+        if (row['geo_latitude']) vp.latitude = String(row['geo_latitude']).trim();
+        if (row['geo_longitude']) vp.longitude = String(row['geo_longitude']).trim();
+        
         if (source && source !== 'direct') vp.source = source;
       }
       
@@ -1110,7 +1118,7 @@ async function buildDashboardSheets(s) {
     ...aggregation.dailyRows.map(r => [r.date, r.visitors]),
     createEmpty(),
     ['DETAILED VISITOR GEOGRAPHY'],
-    ['Visitor ID', 'IP Address', 'Country', 'State', 'City', 'Region', 'Latitude', 'Longitude', 'ISP'],
+    ['Visitor ID', 'IP Address', 'Country', 'State', 'City', 'Region', 'Approx Latitude', 'Approx Longitude', 'ISP'],
     ...Array.from(aggregation.uniqueVisitorGeo.entries()).map(([vId, geo]) => [
       vId, geo.ip_address, geo.geo_country, geo.geo_state, geo.geo_city, geo.geo_region, geo.geo_latitude, geo.geo_longitude, geo.geo_isp
     ])
@@ -1177,6 +1185,8 @@ async function buildDashboardSheets(s) {
       vp.country,
       vp.state,
       vp.city,
+      vp.latitude,
+      vp.longitude,
       vp.source,
       vp.device,
       vp.browser,
@@ -1210,7 +1220,7 @@ async function buildDashboardSheets(s) {
   for(let i=0; i<20; i++) ubVals.push(createEmpty()); // space for charts
   
   ubVals.push([
-    'Visitor ID', 'First Visit Date', 'Last Visit Date', 'Country', 'State', 'City', 'Traffic Source',
+    'Visitor ID', 'First Visit Date', 'Last Visit Date', 'Country', 'State', 'City', 'Approx Latitude', 'Approx Longitude', 'Traffic Source',
     'Device', 'Browser', 'Total Sessions', 'Total Page Views', 'Total Product Views', 'Total Add To Cart',
     'Total Time Spent (Mins)', 'Most Viewed Product', 'Most Viewed Category', 'Orders Placed', 'Total Revenue',
     'Average Order Value', 'Last Visited Page', 'Visitor Status', 'Days Active', 'Days Since Last Visit',
@@ -1668,7 +1678,7 @@ exports.diagnosticTest = async () => {
     console.log('[DIAG] Step 5: Reading headers...');
     const headers = await s.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: `${RAW_EVENTS_SHEET_TITLE}!A1:AC1`
+      range: `${RAW_EVENTS_SHEET_TITLE}!A1:AE1`
     });
     results.steps.push({
       name: 'read_headers',
@@ -1863,7 +1873,7 @@ exports.diagnosticTest = async () => {
     console.log('[DIAG] Step 5: Reading headers...');
     const headers = await s.spreadsheets.values.get({
       spreadsheetId: SHEET_ID,
-      range: `${RAW_EVENTS_SHEET_TITLE}!A1:AC1`
+      range: `${RAW_EVENTS_SHEET_TITLE}!A1:AE1`
     });
     results.steps.push({
       name: 'read_headers',
