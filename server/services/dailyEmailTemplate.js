@@ -112,12 +112,12 @@ const buildDailyAnalyticsEmail = (summary) => {
         <div class="kpi-grid">
           <div class="kpi-row">
             <div class="kpi-card">
-              <span class="label">Total Visitors</span>
-              <span class="value">${formatNum(summary.visitors)}</span>
+              <span class="label">New Visitors</span>
+              <span class="value">${formatNum(summary.newVisitors)}</span>
             </div>
             <div class="kpi-card">
-              <span class="label">Unique Visitors</span>
-              <span class="value">${formatNum(summary.uniqueVisitors)}</span>
+              <span class="label">Repeat Visitors</span>
+              <span class="value">${formatNum(summary.repeatVisitors)}</span>
             </div>
             <div class="kpi-card">
               <span class="label">Sessions</span>
