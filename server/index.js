@@ -932,6 +932,7 @@ app.get('/api/location/pincode/:pincode', async (req, res) => {
             message: err.message,
             stack: err.stack,
             response: err.response?.data
+        });
         res.status(500).json({ error: 'Location lookup failed', details: err.message });
     }
 });
