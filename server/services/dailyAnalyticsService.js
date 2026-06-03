@@ -26,8 +26,10 @@ const generateDailyAnalyticsSummary = async () => {
   
   console.log(`[DAILY_ANALYTICS] Processing events for date: ${targetDateStr}`);
 
-  let totalVisitors = 0;
+  let totalEvents = 0;
   const uniqueVisitors = new Set();
+  const newVisitors = new Set();
+  const repeatVisitors = new Set();
   let totalSessions = 0;
   const uniqueSessions = new Set();
   let pageViews = 0;
@@ -42,6 +44,20 @@ const generateDailyAnalyticsSummary = async () => {
   
   const deviceCounts = { Mobile: 0, Desktop: 0, Tablet: 0, Unknown: 0 };
 
+  const visitorFirstSeen = new Map();
+  // Pass 1: find first seen date for all visitors across all history
+  rows.forEach(row => {
+    const tsStr = row['timestamp'] || '';
+    if (tsStr.length >= 10) {
+      const dStr = tsStr.substring(0, 10);
+      const vId = row['visitor_id'] || 'unknown';
+      if (!visitorFirstSeen.has(vId) && vId !== 'unknown') {
+        visitorFirstSeen.set(vId, dStr);
+      }
+    }
+  });
+
+  // Pass 2: calculate yesterday's metrics
   rows.forEach(row => {
     // raw events timestamp is like 2026-06-02T10:00:00.000Z
     const timestampStr = row['timestamp'] || '';
@@ -53,7 +69,15 @@ const generateDailyAnalyticsSummary = async () => {
     
     uniqueVisitors.add(visitorId);
     uniqueSessions.add(sessionId);
-    totalVisitors++;
+    totalEvents++;
+
+    if (visitorId !== 'unknown') {
+      if (visitorFirstSeen.get(visitorId) === targetDateStr) {
+        newVisitors.add(visitorId);
+      } else {
+        repeatVisitors.add(visitorId);
+      }
+    }
 
     // Event specific counts
     if (eventType === 'page_view') {
@@ -114,8 +138,10 @@ const generateDailyAnalyticsSummary = async () => {
   
   return {
     date: targetDateStr,
-    visitors: totalVisitors,
+    totalEvents,
     uniqueVisitors: uniqueVisitors.size,
+    newVisitors: newVisitors.size,
+    repeatVisitors: repeatVisitors.size,
     sessions: totalSessions,
     pageViews,
     productViews,
