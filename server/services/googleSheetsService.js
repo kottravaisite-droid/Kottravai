@@ -498,6 +498,8 @@ function buildAggregations(rows) {
   const sessions = new Map();
   const visitorFirstSeen = new Map();
   const products = new Map();
+  const cartInstances = []; // Array of { productId, addedAt, purchasedAt }
+  const activeCarts = new Map(); // key: visitorId_productId
   const daily = new Map();
   const weekly = new Map();
   const monthly = new Map();
@@ -679,10 +681,24 @@ function buildAggregations(rows) {
         p.views++;
         totalProductViewsDetected++;
       }
-      if (eventType === 'add_to_cart') p.carts++;
+      if (eventType === 'add_to_cart') {
+        p.carts++;
+        const cKey = `${visitorId}_${pKey}`;
+        if (!activeCarts.has(cKey)) {
+          const inst = { productId: pKey, addedAt: time, purchasedAt: null };
+          cartInstances.push(inst);
+          activeCarts.set(cKey, inst);
+        }
+      }
       if (eventType === 'purchase_completed') {
         p.purchases++;
         p.revenue += revenue;
+        const cKey = `${visitorId}_${pKey}`;
+        if (activeCarts.has(cKey)) {
+          const inst = activeCarts.get(cKey);
+          inst.purchasedAt = time;
+          activeCarts.delete(cKey);
+        }
       }
     }
 
@@ -847,8 +863,38 @@ function buildAggregations(rows) {
   const weeklyRows = sortedMap(weekly, (a, b) => a.date.localeCompare(b.date)).map(mapBucketToRow);
   const monthlyRows = sortedMap(monthly, (a, b) => a.date.localeCompare(b.date)).map(mapBucketToRow);
 
-  const productRows = Array.from(products.values())
-    .sort((a, b) => b.revenue - a.revenue || b.views - a.views);
+  const nowMs = new Date().getTime();
+  const ONE_HOUR = 60 * 60 * 1000;
+  
+  for (const inst of cartInstances) {
+    if (!products.has(inst.productId)) continue;
+    const p = products.get(inst.productId);
+    if (!p.cartMetrics) p.cartMetrics = { decisionTimes: [], activeAges: [], abandonedAges: [] };
+    
+    if (inst.purchasedAt) {
+      p.cartMetrics.decisionTimes.push(inst.purchasedAt - inst.addedAt);
+    } else {
+      const ageMs = nowMs - inst.addedAt;
+      if (ageMs >= 24 * ONE_HOUR) {
+        p.cartMetrics.abandonedAges.push(ageMs);
+      } else {
+        p.cartMetrics.activeAges.push(ageMs);
+      }
+    }
+  }
+
+  const productRows = Array.from(products.values()).map(p => {
+    const m = p.cartMetrics || { decisionTimes: [], activeAges: [], abandonedAges: [] };
+    const avg = (arr) => arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length)/ONE_HOUR : 0;
+    p.avgDecisionTime = avg(m.decisionTimes);
+    p.avgActiveAge = avg(m.activeAges);
+    p.avgAbandonedAge = avg(m.abandonedAges);
+    p.abandonedCount = m.abandonedAges.length;
+    p.activeCount = m.activeAges.length;
+    p.cartConvRate = p.carts > 0 ? (p.purchases / p.carts) : 0;
+    p.cartAbandRate = p.carts > 0 ? (p.abandonedCount / p.carts) : 0;
+    return p;
+  }).sort((a, b) => b.revenue - a.revenue || b.views - a.views);
 
   const utmRows = Array.from(utmSources.values())
     .map(src => ({
@@ -1008,11 +1054,29 @@ async function buildDashboardSheets(s) {
   });
   const catRows = Array.from(categoryStats.entries()).sort((a,b) => b[1].revenue - a[1].revenue);
 
+  const fastProd = [...aggregation.productRows].filter(p => p.avgDecisionTime > 0).sort((a,b) => a.avgDecisionTime - b.avgDecisionTime)[0];
+  const slowProd = [...aggregation.productRows].filter(p => p.avgDecisionTime > 0).sort((a,b) => b.avgDecisionTime - a.avgDecisionTime)[0];
+  const totalDecisions = aggregation.productRows.reduce((sum, p) => sum + (p.cartMetrics ? p.cartMetrics.decisionTimes.length : 0), 0);
+  const totalDecisionTime = aggregation.productRows.reduce((sum, p) => sum + (p.cartMetrics ? p.cartMetrics.decisionTimes.reduce((a,b)=>a+b,0) : 0), 0);
+  const avgOverallDecisionTime = totalDecisions > 0 ? (totalDecisionTime / totalDecisions) / (60*60*1000) : 0;
+  const totalActive = aggregation.productRows.reduce((sum, p) => sum + (p.activeCount || 0), 0);
+  const totalAbandoned = aggregation.productRows.reduce((sum, p) => sum + (p.abandonedCount || 0), 0);
+
   // 2. PRODUCT ANALYTICS
   const prodVals = appendMeta([
     ['PRODUCT ANALYTICS'], createEmpty(),
-    ['TOP PRODUCTS', 'Views', 'Add To Cart', 'Purchases', 'Revenue', 'Conv Rate'],
-    ...aggregation.productRows.slice(0, 100).map(p => [p.productName, p.views, p.carts, p.purchases, formatCurrency(p.revenue), formatPercent(p.views > 0 ? p.purchases/p.views : 0)]),
+    ['CART ANALYTICS KPIs', 'Value'],
+    ['Average Purchase Decision Time (Hours)', ndy(avgOverallDecisionTime)],
+    ['Total Active Carts', totalActive],
+    ['Total Abandoned Carts', totalAbandoned],
+    ['Fastest Converting Product', fastProd ? fastProd.productName : 'N/A'],
+    ['Slowest Converting Product', slowProd ? slowProd.productName : 'N/A'],
+    createEmpty(),
+    ['TOP PRODUCTS', 'Views', 'Add To Cart', 'Purchases', 'Revenue', 'Conv Rate', 'Avg Purchase Decision Time (Hours)', 'Avg Active Cart Age (Hours)', 'Avg Abandoned Cart Age (Hours)', 'Cart Conversion Rate', 'Cart Abandonment Rate'],
+    ...aggregation.productRows.slice(0, 100).map(p => [
+      p.productName, p.views, p.carts, p.purchases, formatCurrency(p.revenue), formatPercent(p.views > 0 ? p.purchases/p.views : 0),
+      ndy(p.avgDecisionTime), ndy(p.avgActiveAge), ndy(p.avgAbandonedAge), formatPercent(p.cartConvRate), formatPercent(p.cartAbandRate)
+    ]),
     createEmpty(),
     ['LOW CONVERSION PRODUCTS', 'Views', 'Purchases', 'Conv Rate'],
     ...aggregation.productRows.filter(p => (p.views > 0 ? (p.purchases/p.views) : 0) < 0.02).slice(0, 100).map(p => [p.productName, p.views, p.purchases, formatPercent(p.views > 0 ? p.purchases/p.views : 0)]),
