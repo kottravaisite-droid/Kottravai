@@ -653,6 +653,16 @@ function buildAggregations(rows) {
       
       if (sessionId) vp.sessions.add(sessionId);
       
+      if (eventType === 'guest_checkout_started' || eventType === 'otp_sent') {
+        try {
+          const metaStr = row['metadata'] || row['Metadata'];
+          if (metaStr) {
+            const meta = typeof metaStr === 'string' ? JSON.parse(metaStr) : metaStr;
+            if (meta.phone) vp.phone = String(meta.phone).trim();
+          }
+        } catch (e) {}
+      }
+      
       if (eventType === 'page_view') vp.pageViews++;
       if (eventType === 'product_view') {
         vp.productViews++;
@@ -685,7 +695,9 @@ function buildAggregations(rows) {
         p.carts++;
         const cKey = `${visitorId}_${pKey}`;
         if (!activeCarts.has(cKey)) {
-          const inst = { productId: pKey, addedAt: time, purchasedAt: null };
+          const price = parseFloat(row['price'] || row['Price'] || 0) || 0;
+          const category = row['category'] || row['Category'] || 'Unknown';
+          const inst = { visitorId, productId: pKey, category, price, addedAt: time, purchasedAt: null };
           cartInstances.push(inst);
           activeCarts.set(cKey, inst);
         }
@@ -933,6 +945,7 @@ function buildAggregations(rows) {
     monthlyRows,
     productRows,
     utmRows,
+    cartInstances,
     topExitPages,
     globalFunnel,
     globalGuest,
@@ -1518,6 +1531,24 @@ async function buildDashboardSheets(s) {
     console.error('[DASHBOARD_CHART_ERROR]', err.message);
   }
 }
+
+// Exported getAggregations for external services (like Cart Recovery)
+exports.getAggregations = async () => {
+  const s = await sheets();
+  const rawRes = await s.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: 'Raw Events!A2:Z100000' });
+  const rows = rawRes.data.values || [];
+  const headersRes = await s.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: 'Raw Events!A1:Z1' });
+  const headers = headersRes.data.values[0];
+  
+  const mappedRows = rows.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => { obj[h.toLowerCase().replace(/ /g, '_')] = row[i]; });
+    return obj;
+  });
+
+  return buildAggregations(mappedRows);
+}
+
 async function populateDashboardSheet(s) {
   await buildDashboardSheets(s);
 }

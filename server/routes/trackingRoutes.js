@@ -59,6 +59,18 @@ router.get('/dashboard/update', async (req, res) => {
   }
 });
 
+// GET /api/track/cart-recovery -> Scheduled cart recovery job
+router.get('/cart-recovery', async (req, res) => {
+  try {
+    const cartRecoveryService = require('../services/cartRecoveryService');
+    const result = await cartRecoveryService.runRecoveryJob();
+    res.json(result);
+  } catch (err) {
+    console.error('[CART_RECOVERY_JOB_ERROR]', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Diagnostics
 router.get('/health', trackingController.health);
 router.get('/config', trackingController.config);

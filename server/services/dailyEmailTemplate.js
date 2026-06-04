@@ -145,6 +145,27 @@ const buildDailyAnalyticsEmail = (summary) => {
           </div>
         </div>
 
+        ${summary.cartRecovery ? `
+        <!-- Cart Recovery Summary -->
+        <h2 class="section-title">🛒 Cart Recovery Summary</h2>
+        <div class="kpi-grid" style="margin-bottom: 25px;">
+          <div class="kpi-row">
+            <div class="kpi-card success">
+              <span class="label">Recovered Revenue</span>
+              <span class="value">${formatCur(summary.cartRecovery.recoveredRevenue)}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="label">Recovered Carts</span>
+              <span class="value">${formatNum(summary.cartRecovery.recoveredOrders)}</span>
+            </div>
+            <div class="kpi-card">
+              <span class="label">Recovery Rate</span>
+              <span class="value">${formatPct(summary.cartRecovery.recoveryRate)}</span>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+
         <h2 class="section-title">Engagement Metrics</h2>
         <div class="kpi-grid">
           <div class="kpi-row">

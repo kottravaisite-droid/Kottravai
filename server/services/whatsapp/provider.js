@@ -43,6 +43,30 @@ class WhatsAppProvider {
       throw error;
     }
   }
+
+  /**
+   * Send an abandoned cart recovery message.
+   * @param {string} phone - Phone number with country code.
+   * @param {string} strategyName - The name of the recovery strategy.
+   * @param {string} productName - The product left in the cart.
+   * @param {string} coupon - Optional discount coupon.
+   * @returns {Promise<boolean>} True if successful.
+   */
+  async sendRecoveryMessage(phone, strategyName, productName, coupon) {
+    try {
+      console.log(`[WhatsAppProvider] Sending Recovery (${strategyName}) via ${this.providerName} to ${phone}`);
+      // Fallback or dry-run mock implementation if the provider doesn't strictly implement this yet
+      if (typeof this.provider.sendRecoveryMessage === 'function') {
+        return await this.provider.sendRecoveryMessage(phone, strategyName, productName, coupon);
+      } else {
+        console.log(`[WhatsAppProvider] Mock Send (Provider does not implement yet). Product: ${productName}, Coupon: ${coupon}`);
+        return true;
+      }
+    } catch (error) {
+      console.error(`[WhatsAppProvider] Failed to send Recovery via ${this.providerName}:`, error.message);
+      throw error;
+    }
+  }
 }
 
 module.exports = new WhatsAppProvider();
